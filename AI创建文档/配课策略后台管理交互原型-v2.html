@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>配课策略后台管理交互原型</title>
+  <style>
+    :root {
+      --bg: #f4f7fc;
+      --panel: #ffffff;
+      --panel-soft: #f8fbff;
+      --line: #dfe6f2;
+      --header: #eef3fb;
+      --text: #24324a;
+      --muted: #7f8ca3;
+      --primary: #456dff;
+      --primary-soft: #edf2ff;
+      --green: #1fb65c;
+      --orange: #ff9a3d;
+      --danger: #ff5a5f;
+      --shadow: 0 16px 38px rgba(76, 104, 160, 0.08);
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: linear-gradient(180deg, #f7f9fc, #f1f5fb);
+      color: var(--text);
+    }
+    button, input, select { font: inherit; }
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 228px 1fr;
+      gap: 16px;
+      padding: 16px;
+    }
+    .nav,
+    .main {
+      min-height: calc(100vh - 32px);
+    }
+    .nav {
+      background: linear-gradient(180deg, #fff, #f8fbff);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 18px 14px;
+    }
+    .brand {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+    .nav-group {
+      margin-bottom: 18px;
+    }
+    .nav-group-title {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 10px;
+      padding: 0 10px;
+    }
+    .nav-item {
+      border-radius: 14px;
+      padding: 12px;
+      color: #41547a;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .nav-item.active {
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .main {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .page {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .page-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #fff, #fbfcff);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .page-title h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+    }
+    .page-title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .toolbar {
+      padding: 16px 20px 10px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr)) auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .select,
+    .input {
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      padding: 0 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+    .select:focus,
+    .input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(69, 109, 255, 0.08);
+    }
+    .primary-btn,
+    .ghost-btn,
+    .danger-btn,
+    .mini-btn {
+      height: 40px;
+      border-radius: 12px;
+      padding: 0 16px;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .primary-btn {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(69, 109, 255, 0.18);
+    }
+    .ghost-btn {
+      background: #fff;
+      border-color: var(--line);
+      color: #4a5a77;
+    }
+    .danger-btn {
+      background: #fff5f5;
+      color: var(--danger);
+      border-color: #ffd8d8;
+    }
+    .mini-btn {
+      height: 34px;
+      padding: 0 12px;
+      background: #fff;
+      border-color: var(--line);
+      color: #54627f;
+    }
+    .mini-btn.active {
+      background: var(--primary-soft);
+      border-color: #cfdaff;
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .list-page,
+    .editor-page {
+      display: none;
+    }
+    .list-page.active,
+    .editor-page.active {
+      display: block;
+    }
+    .list-body,
+    .editor-body {
+      padding: 0 20px 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead tr {
+      background: var(--header);
+    }
+    th,
+    td {
+      text-align: left;
+      padding: 14px 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+    }
+    th {
+      font-weight: 700;
+      color: #3c4d6b;
+      white-space: nowrap;
+    }
+    td a {
+      color: var(--primary);
+      text-decoration: none;
+      margin-right: 14px;
+      cursor: pointer;
+    }
+    .status-pill,
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .status-pill {
+      background: #eef7ef;
+      color: #218838;
+    }
+    .tag {
+      background: #f2f5fa;
+      color: #536785;
+    }
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 0 0;
+    }
+    .pagination-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .page-btn {
+      min-width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      color: #4c5d7a;
+    }
+    .page-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .editor-head {
+      padding: 18px 20px 0;
+    }
+    .editor-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .editor-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .editor-sub {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+      max-width: 820px;
+    }
+    .section {
+      margin: 0 20px 16px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--panel);
+    }
+    .section-bar {
+      background: linear-gradient(180deg, #f8fbff, #f3f6fb);
+      padding: 12px 14px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .basic-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px 16px;
+      padding: 16px 14px;
+    }
+    .meta-card {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .meta-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .meta-card strong {
+      font-size: 15px;
+    }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      padding: 14px 14px 0;
+    }
+    .tab-btn {
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 10px 14px;
+      cursor: pointer;
+      color: #536785;
+    }
+    .tab-btn.active {
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-color: #cfdaff;
+      font-weight: 700;
+    }
+    .strategy-panel {
+      display: none;
+      padding: 14px;
+    }
+    .strategy-panel.active {
+      display: block;
+    }
+    .default-card,
+    .override-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fff, #fbfcff);
+      padding: 16px;
+    }
+    .default-card {
+      margin-bottom: 14px;
+    }
+    .sub-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    .sub-title h4 {
+      margin: 0 0 6px;
+      font-size: 17px;
+    }
+    .sub-title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .rule-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px 16px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .field label {
+      font-size: 13px;
+      color: #465b82;
+    }
+    .field-line {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .tag-box {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 6px 8px;
+      background: #fff;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      border: 1px solid #d6e1f4;
+      background: #fff;
+      color: #54627f;
+      border-radius: 999px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .chip.active {
+      background: var(--primary-soft);
+      border-color: #cfdaff;
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .data-mode {
+      margin-top: 14px;
+      border-top: 1px dashed var(--line);
+      padding-top: 14px;
+    }
+    .mode-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .branch-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .branch-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfdff;
+      padding: 12px;
+    }
+    .branch-card h5 {
+      margin: 0 0 10px;
+      font-size: 14px;
+    }
+    .sub-branch-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .sub-branch {
+      display: grid;
+      grid-template-columns: 140px 1fr 1fr;
+      gap: 10px;
+      align-items: center;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .sub-branch strong {
+      font-size: 13px;
+      color: #465b82;
+    }
+    .hint {
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+    .override-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .tag-groups {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .tag-group {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      padding: 12px 14px;
+    }
+    .tag-group h5 {
+      margin: 0 0 10px;
+      font-size: 14px;
+    }
+    .student-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .student-row:last-child {
+      margin-bottom: 0;
+    }
+    .row-remove {
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid #ffd8d8;
+      background: #fff5f5;
+      color: var(--danger);
+      cursor: pointer;
+      padding: 0 12px;
+    }
+    .audience-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fff, #fbfcff);
+      padding: 16px;
+    }
+    .footer {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      padding: 10px 0 24px;
+    }
+    .validation {
+      display: none;
+      border: 1px solid #ffd8d8;
+      background: #fff5f5;
+      color: #c92a2a;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0 20px 16px;
+    }
+    .validation.show {
+      display: block;
+    }
+    @media (max-width: 1400px) {
+      .basic-grid,
+      .rule-grid,
+      .tag-groups {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 1180px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+      .nav {
+        display: none;
+      }
+      .toolbar,
+      .basic-grid,
+      .rule-grid,
+      .tag-groups,
+      .sub-branch {
+        grid-template-columns: 1fr;
+      }
+      .page-header,
+      .editor-topline,
+      .sub-title {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="nav">
+      <div class="brand">策略后台</div>
+      <div class="nav-group">
+        <div class="nav-group-title">策略管理</div>
+        <div class="nav-item active">配课策略 <span>12</span></div>
+        <div class="nav-item">作业策略 <span>6</span></div>
+        <div class="nav-item">标签管理</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">教研工具</div>
+        <div class="nav-item">题模标签</div>
+        <div class="nav-item">教材章节</div>
+        <div class="nav-item">学习方案</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="page list-page active" id="listPage">
+        <div class="page-header">
+          <div class="page-title">
+            <h1>配课策略管理</h1>
+            <p>按学科、教材版本、学习场景维护配课策略。</p>
+          </div>
+          <button class="primary-btn" id="addStrategy">+ 新增策略</button>
+        </div>
+
+        <div class="toolbar">
+          <select class="select" id="filterSubject">
+            <option value="">学科</option>
+            <option>高中数学</option>
+            <option>初三物理</option>
+            <option>语文</option>
+          </select>
+          <select class="select" id="filterVersion">
+            <option value="">版本教材</option>
+            <option>人教版A版</option>
+            <option>人教版</option>
+            <option>部编版</option>
+          </select>
+          <select class="select" id="filterScene">
+            <option value="">学习场景</option>
+            <option>预习</option>
+            <option>提升</option>
+            <option>同步校内</option>
+          </select>
+          <select class="select" id="filterStatus">
+            <option value="">状态</option>
+            <option>启用</option>
+            <option>草稿</option>
+          </select>
+          <button class="ghost-btn" id="resetFilter">重置</button>
+        </div>
+
+        <div class="list-body">
+          <table>
+            <thead>
+              <tr>
+                <th>策略名称</th>
+                <th>学科</th>
+                <th>教材版本</th>
+                <th>学习场景</th>
+                <th>默认策略</th>
+                <th>覆盖规则数</th>
+                <th>使用次数</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="strategyTable"></tbody>
+          </table>
+
+          <div class="pagination">
+            <div>共 <strong id="totalCount">0</strong> 条策略</div>
+            <div class="pagination-right">
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page editor-page" id="editorPage">
+        <div class="page-header">
+          <div class="page-title">
+            <h1 id="editorPageTitle">策略编辑</h1>
+            <p>默认策略 + 适用学生配置</p>
+          </div>
+          <div class="field-line">
+            <button class="ghost-btn" id="backToList">返回列表</button>
+            <button class="primary-btn" id="saveStrategy">保存策略</button>
+          </div>
+        </div>
+
+        <div class="editor-head">
+          <div class="editor-topline">
+            <div>
+              <div class="editor-title" id="editorTitle"></div>
+              <div class="editor-sub">配置当前学科版本下的默认策略与适用学生。</div>
+            </div>
+          </div>
+        </div>
+
+        <section class="section">
+          <div class="section-bar">基础信息</div>
+          <div class="basic-grid">
+            <div class="meta-card"><span>学科</span><strong id="metaSubject"></strong></div>
+            <div class="meta-card"><span>教材版本</span><strong id="metaVersion"></strong></div>
+            <div class="meta-card"><span>学习场景</span><strong id="metaScene"></strong></div>
+            <div class="meta-card"><span>规则结构</span><strong>默认策略 + 标签覆盖规则</strong></div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-bar">策略配置</div>
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="default">默认策略</button>
+            <button class="tab-btn" data-tab="override">适用学生</button>
+          </div>
+
+          <div class="strategy-panel active" data-panel="default">
+            <div class="default-card" id="defaultStrategy"></div>
+          </div>
+
+          <div class="strategy-panel" data-panel="override">
+            <div class="override-list" id="overrideList"></div>
+          </div>
+        </section>
+
+        <div class="validation" id="validationBox"></div>
+
+        <div class="footer">
+          <button class="ghost-btn" id="cancelEdit">取消</button>
+          <button class="primary-btn" id="saveFooter">保存策略</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      var tagOptions = {
+        score: ['全部', '95分以上', '70-94分', '70分以下'],
+        ability: ['全部', '能力强', '能力中', '能力弱'],
+        willingness: ['全部', '意愿高', '意愿中', '意愿低']
+      };
+
+      var strategies = [
+        {
+          name: '高中数学-人教版A版-预习配课策略',
+          subject: '高中数学',
+          version: '人教版A版',
+          scene: '预习',
+          applicableStudents: [
+            { score: '70分以下', ability: '能力弱', willingness: '意愿中' },
+            { score: '70分以下', ability: '能力弱', willingness: '意愿低' },
+            { score: '95分以上', ability: '能力强', willingness: '意愿高' },
+            { score: '95分以上', ability: '能力强', willingness: '意愿中' }
+          ],
+          used: 37,
+          status: '启用',
+          defaultRule: {
+            questionType: '学',
+            knowledgeType: '认知增量',
+            difficulty: ['基础'],
+            importance: ['中', '高'],
+            learned: '不区分',
+            dataMode: 'distinguish',
+            directPassMode: '学',
+            directPlanType: '新知学',
+            withDataRules: [
+              { label: '正确率<60%', passMode: '测学', planType: '巩固学' },
+              { label: '正确率60%-85%', passMode: '先测后补', planType: '巩固学' },
+              { label: '正确率≥85%', passMode: '学', planType: '新知学' }
+            ],
+            noDataRules: [
+              { label: '校内未学', passMode: '学', planType: '新知学' },
+              { label: '校内已学', passMode: '测学', planType: '巩固学' }
+            ]
+          }
+        },
+        {
+          name: '初三物理-人教版-同步校内配课策略',
+          subject: '初三物理',
+          version: '人教版',
+          scene: '同步校内',
+          applicableStudents: [
+            { score: '70-94分', ability: '能力中', willingness: '意愿中' }
+          ],
+          used: 24,
+          status: '草稿',
+          defaultRule: {
+            questionType: '学',
+            knowledgeType: '认知增量',
+            difficulty: ['基础'],
+            importance: ['中', '高'],
+            learned: '不区分',
+            dataMode: 'distinguish',
+            directPassMode: '学',
+            directPlanType: '新知学',
+            withDataRules: [
+              { label: '正确率<60%', passMode: '测学', planType: '巩固学' },
+              { label: '正确率60%-85%', passMode: '先测后补', planType: '巩固学' },
+              { label: '正确率≥85%', passMode: '学', planType: '新知学' }
+            ],
+            noDataRules: [
+              { label: '校内未学', passMode: '学', planType: '新知学' },
+              { label: '校内已学', passMode: '测学', planType: '巩固学' }
+            ]
+          }
+        }
+      ];
+
+      var state = {
+        currentStrategy: null,
+        currentTab: 'default'
+      };
+
+      var listPage = document.getElementById('listPage');
+      var editorPage = document.getElementById('editorPage');
+      var strategyTable = document.getElementById('strategyTable');
+
+      function clone(obj) {
+        return JSON.parse(JSON.stringify(obj));
+      }
+
+      function optionHtml(current, options) {
+        return options.map(function (item) {
+          return '<option' + (current === item ? ' selected' : '') + '>' + item + '</option>';
+        }).join('');
+      }
+
+      function renderTable() {
+        var subject = document.getElementById('filterSubject').value;
+        var version = document.getElementById('filterVersion').value;
+        var scene = document.getElementById('filterScene').value;
+        var status = document.getElementById('filterStatus').value;
+
+        var rows = strategies.filter(function (item) {
+          return (!subject || item.subject === subject) &&
+            (!version || item.version === version) &&
+            (!scene || item.scene === scene) &&
+            (!status || item.status === status);
+        });
+
+        document.getElementById('totalCount').textContent = rows.length;
+        strategyTable.innerHTML = rows.map(function (item, index) {
+          return '' +
+            '<tr>' +
+              '<td>' + item.name + '</td>' +
+              '<td>' + item.subject + '</td>' +
+              '<td>' + item.version + '</td>' +
+              '<td>' + item.scene + '</td>' +
+              '<td><span class="tag">1 条</span></td>' +
+              '<td>' + item.applicableStudents.length + '</td>' +
+              '<td>' + item.used + '</td>' +
+              '<td><span class="status-pill">' + item.status + '</span></td>' +
+              '<td><a data-action="edit" data-index="' + index + '">编辑</a><a data-action="copy" data-index="' + index + '">复制</a></td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      function branchBlock(rule, group, index, branchType) {
+        var list = branchType === 'withData' ? rule.withDataRules : rule.noDataRules;
+        return '' +
+          '<div class="branch-card">' +
+            '<h5>' + (branchType === 'withData' ? '有学习数据' : '无学习数据') + '</h5>' +
+            '<div class="sub-branch-list">' +
+              list.map(function (item, itemIndex) {
+                return '' +
+                  '<div class="sub-branch">' +
+                    '<strong>' + item.label + '</strong>' +
+                    '<select class="select" data-branch-group="' + group + '" data-rule-index="' + index + '" data-branch-type="' + branchType + '" data-branch-index="' + itemIndex + '" data-branch-field="passMode">' +
+                      optionHtml(item.passMode, ['学', '测学', '测已学', '测前序', '先测后补']) +
+                    '</select>' +
+                    '<select class="select" data-branch-group="' + group + '" data-rule-index="' + index + '" data-branch-type="' + branchType + '" data-branch-index="' + itemIndex + '" data-branch-field="planType">' +
+                      optionHtml(item.planType, ['新知学', '巩固学', '复习学']) +
+                    '</select>' +
+                  '</div>';
+              }).join('') +
+            '</div>' +
+          '</div>';
+      }
+
+      function ruleCoreHtml(rule, group, index) {
+        return '' +
+          '<div class="rule-grid">' +
+            '<div class="field">' +
+              '<label>题模类型</label>' +
+              '<select class="select" data-group="' + group + '" data-index="' + index + '" data-field="questionType">' +
+                optionHtml(rule.questionType, ['学', '练', '试', '融会贯通']) +
+              '</select>' +
+            '</div>' +
+            '<div class="field">' +
+              '<label>知识类型</label>' +
+              '<select class="select" data-group="' + group + '" data-index="' + index + '" data-field="knowledgeType">' +
+                optionHtml(rule.knowledgeType, ['认知增量', '融会贯通']) +
+              '</select>' +
+            '</div>' +
+            '<div class="field">' +
+              '<label>认知难度</label>' +
+              '<div class="tag-box">' + rule.difficulty.map(function (tag) { return '<span class="tag">' + tag + '</span>'; }).join('') + '</div>' +
+            '</div>' +
+            '<div class="field">' +
+              '<label>重要度</label>' +
+              '<div class="tag-box">' + rule.importance.map(function (tag) { return '<span class="tag">' + tag + '</span>'; }).join('') + '</div>' +
+            '</div>' +
+            '<div class="field">' +
+              '<label>是否已学</label>' +
+              '<select class="select" data-group="' + group + '" data-index="' + index + '" data-field="learned">' +
+                optionHtml(rule.learned, ['不区分', '已学', '未学']) +
+              '</select>' +
+            '</div>' +
+          '</div>' +
+          '<div class="data-mode">' +
+            '<div class="field">' +
+              '<label>学习数据处理方式</label>' +
+              '<div class="mode-tabs">' +
+                '<button class="mini-btn' + (rule.dataMode === 'ignore' ? ' active' : '') + '" data-mode="' + group + ':' + index + ':ignore">不区分学习数据</button>' +
+                '<button class="mini-btn' + (rule.dataMode === 'distinguish' ? ' active' : '') + '" data-mode="' + group + ':' + index + ':distinguish">区分学习数据</button>' +
+              '</div>' +
+            '</div>' +
+            (rule.dataMode === 'ignore'
+              ? '<div class="branch-card">' +
+                  '<h5>统一处理逻辑</h5>' +
+                  '<div class="sub-branch">' +
+                    '<strong>全部命中内容</strong>' +
+                    '<select class="select" data-group="' + group + '" data-index="' + index + '" data-field="directPassMode">' +
+                      optionHtml(rule.directPassMode, ['学', '测学', '测已学', '测前序', '先测后补']) +
+                    '</select>' +
+                    '<select class="select" data-group="' + group + '" data-index="' + index + '" data-field="directPlanType">' +
+                      optionHtml(rule.directPlanType, ['新知学', '巩固学', '复习学']) +
+                    '</select>' +
+                  '</div>' +
+                '</div>'
+              : '<div class="branch-wrap">' + branchBlock(rule, group, index, 'withData') + branchBlock(rule, group, index, 'noData') + '</div>') +
+          '</div>' +
+          '<div class="hint">说明：只有在标签覆盖规则命中时，才使用本卡片里的配课逻辑；否则自动使用默认策略。</div>';
+      }
+
+      function renderDefaultRule() {
+        var rule = state.currentStrategy.defaultRule;
+        document.getElementById('defaultStrategy').innerHTML = '' +
+          '<div class="sub-title">' +
+            '<div>' +
+              '<h4>默认策略</h4>' +
+              '<p>当前学科版本下的基础配课逻辑。</p>' +
+            '</div>' +
+          '</div>' +
+          ruleCoreHtml(rule, 'default', 0);
+      }
+
+      function audienceRowHtml(row, rowIndex) {
+        return '' +
+          '<div class="student-row">' +
+            '<select class="select" data-audience-field="' + rowIndex + ':score">' +
+              optionHtml(row.score, ['95分以上', '70-94分', '70分以下']) +
+            '</select>' +
+            '<select class="select" data-audience-field="' + rowIndex + ':ability">' +
+              optionHtml(row.ability, ['能力强', '能力中', '能力弱']) +
+            '</select>' +
+            '<select class="select" data-audience-field="' + rowIndex + ':willingness">' +
+              optionHtml(row.willingness, ['意愿高', '意愿中', '意愿低']) +
+            '</select>' +
+            '<button class="row-remove" data-remove-row="' + rowIndex + '">删除</button>' +
+          '</div>';
+      }
+
+      function renderOverrideRules() {
+        var wrap = document.getElementById('overrideList');
+        wrap.innerHTML = '' +
+          '<div class="audience-card">' +
+            '<div class="tag-groups">' +
+              '<div class="tag-group">' +
+                '<h5>适用学生</h5>' +
+                state.currentStrategy.applicableStudents.map(function (row, rowIndex) { return audienceRowHtml(row, rowIndex); }).join('') +
+                '<button class="mini-btn" id="addAudienceRow">+ 新增一行</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+      }
+
+      function renderEditor() {
+        document.getElementById('editorPageTitle').textContent = state.currentStrategy.name;
+        document.getElementById('editorTitle').textContent = state.currentStrategy.name;
+        document.getElementById('metaSubject').textContent = state.currentStrategy.subject;
+        document.getElementById('metaVersion').textContent = state.currentStrategy.version;
+        document.getElementById('metaScene').textContent = state.currentStrategy.scene;
+
+        document.querySelectorAll('.tab-btn').forEach(function (tab) {
+          tab.classList.toggle('active', tab.getAttribute('data-tab') === state.currentTab);
+        });
+        document.querySelectorAll('.strategy-panel').forEach(function (panel) {
+          panel.classList.toggle('active', panel.getAttribute('data-panel') === state.currentTab);
+        });
+
+        renderDefaultRule();
+        renderOverrideRules();
+      }
+
+      function openEditor(strategy) {
+        state.currentStrategy = clone(strategy);
+        state.currentTab = 'default';
+        if (!state.currentStrategy.applicableStudents) state.currentStrategy.applicableStudents = [];
+        listPage.classList.remove('active');
+        editorPage.classList.add('active');
+        document.getElementById('validationBox').classList.remove('show');
+        renderEditor();
+      }
+
+      function backToList() {
+        editorPage.classList.remove('active');
+        listPage.classList.add('active');
+        renderTable();
+      }
+
+      function createOverrideRule() {
+        return { score: '70-94分', ability: '能力中', willingness: '意愿中' };
+      }
+
+      function validateBeforeSave() {
+        var errors = [];
+        if (!state.currentStrategy.defaultRule.questionType) errors.push('默认策略缺少题模类型。');
+        if (!state.currentStrategy.defaultRule.learned) errors.push('默认策略缺少是否已学配置。');
+
+        if (!state.currentStrategy.applicableStudents || !state.currentStrategy.applicableStudents.length) errors.push('请至少配置一行适用学生。');
+
+        return errors;
+      }
+
+      function getRule(group, index) {
+        return state.currentStrategy.defaultRule;
+      }
+
+      document.addEventListener('click', function (event) {
+        var action = event.target.getAttribute('data-action');
+        var index = event.target.getAttribute('data-index');
+
+        if (action === 'edit') openEditor(strategies[Number(index)]);
+        if (action === 'copy') {
+          var copied = clone(strategies[Number(index)]);
+          copied.name += '-副本';
+          copied.status = '草稿';
+          strategies.unshift(copied);
+          renderTable();
+        }
+
+        if (event.target.id === 'addStrategy') {
+          openEditor({
+            name: '新建配课策略',
+            subject: document.getElementById('filterSubject').value || '高中数学',
+            version: document.getElementById('filterVersion').value || '人教版A版',
+            scene: document.getElementById('filterScene').value || '预习',
+            applicableStudents: [
+              { score: '70-94分', ability: '能力中', willingness: '意愿中' }
+            ],
+            used: 0,
+            status: '草稿',
+            defaultRule: clone(strategies[0].defaultRule)
+          });
+        }
+
+        if (event.target.id === 'backToList' || event.target.id === 'cancelEdit') {
+          backToList();
+        }
+
+        if (event.target.id === 'saveStrategy' || event.target.id === 'saveFooter') {
+          var errors = validateBeforeSave();
+          var box = document.getElementById('validationBox');
+          if (errors.length) {
+            box.classList.add('show');
+            box.innerHTML = errors.join('<br>');
+            return;
+          }
+          box.classList.remove('show');
+          backToList();
+        }
+
+        var tab = event.target.getAttribute('data-tab');
+        if (tab) {
+          state.currentTab = tab;
+          renderEditor();
+        }
+
+        var mode = event.target.getAttribute('data-mode');
+        if (mode) {
+          var modeParts = mode.split(':');
+          var modeRule = getRule(modeParts[0], Number(modeParts[1]));
+          modeRule.dataMode = modeParts[2];
+          renderEditor();
+        }
+
+        if (event.target.id === 'addAudienceRow') {
+          state.currentStrategy.applicableStudents.push(createOverrideRule());
+          renderOverrideRules();
+        }
+
+        var removeRow = event.target.getAttribute('data-remove-row');
+        if (removeRow) {
+          if (state.currentStrategy.applicableStudents.length > 1) {
+            state.currentStrategy.applicableStudents.splice(Number(removeRow), 1);
+            renderOverrideRules();
+          }
+        }
+      });
+
+      document.addEventListener('change', function (event) {
+        var group = event.target.getAttribute('data-group');
+        var index = event.target.getAttribute('data-index');
+        var field = event.target.getAttribute('data-field');
+        if (group && field) {
+          var rule = getRule(group, Number(index));
+          rule[field] = event.target.value;
+        }
+
+        var branchGroup = event.target.getAttribute('data-branch-group');
+        var branchType = event.target.getAttribute('data-branch-type');
+        var branchIndex = event.target.getAttribute('data-branch-index');
+        var branchField = event.target.getAttribute('data-branch-field');
+        if (branchGroup && branchType && branchField) {
+          var targetRule = getRule(branchGroup, Number(event.target.getAttribute('data-rule-index')));
+          var branchList = branchType === 'withData' ? targetRule.withDataRules : targetRule.noDataRules;
+          branchList[Number(branchIndex)][branchField] = event.target.value;
+        }
+
+        var audienceField = event.target.getAttribute('data-audience-field');
+        if (audienceField) {
+          var audienceParts = audienceField.split(':');
+          state.currentStrategy.applicableStudents[Number(audienceParts[0])][audienceParts[1]] = event.target.value;
+        }
+      });
+
+      ['filterSubject', 'filterVersion', 'filterScene', 'filterStatus'].forEach(function (id) {
+        document.getElementById(id).addEventListener('change', renderTable);
+      });
+
+      document.getElementById('resetFilter').addEventListener('click', function () {
+        ['filterSubject', 'filterVersion', 'filterScene', 'filterStatus'].forEach(function (id) {
+          document.getElementById(id).value = '';
+        });
+        renderTable();
+      });
+
+      renderTable();
+    }());
+  </script>
+</body>
+</html>

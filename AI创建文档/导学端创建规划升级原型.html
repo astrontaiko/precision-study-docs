@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>导学端创建规划升级原型</title>
+  <style>
+    :root {
+      --bg1: #eef4ff;
+      --bg2: #f9fbff;
+      --panel: #ffffff;
+      --soft: #eef5ff;
+      --soft-blue: #e9f2ff;
+      --line: #dbe7fb;
+      --text: #1f2b45;
+      --muted: #7d8ba6;
+      --primary: #3f6dff;
+      --primary-soft: #eaf0ff;
+      --shadow: 0 18px 40px rgba(55, 92, 186, 0.12);
+      --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(circle at left top, rgba(123, 161, 255, 0.14), transparent 26%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+    }
+    button, input, select, textarea { font: inherit; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: 220px 1fr; }
+    .sidebar {
+      padding: 18px 14px;
+      background: linear-gradient(180deg, rgba(247,250,255,0.98), rgba(241,246,255,0.98));
+      border-right: 1px solid rgba(219,231,251,0.95);
+    }
+    .back { font-size: 14px; color: #334a73; margin-bottom: 18px; }
+    .student-pill {
+      padding: 14px 18px;
+      border-radius: 16px;
+      background: #dfeafc;
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .lesson-list {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: calc(100vh - 180px);
+      overflow: auto;
+    }
+    .lesson-item {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .lesson-item.active { border-color: var(--primary); box-shadow: 0 10px 24px rgba(63,109,255,0.12); }
+    .lesson-item strong { display: block; margin-bottom: 6px; font-size: 15px; }
+    .lesson-item span { color: var(--muted); font-size: 13px; }
+    .main { padding: 18px; }
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 18px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .profile { display: flex; align-items: center; gap: 14px; }
+    .avatar {
+      width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center;
+      font-size: 18px; background: linear-gradient(135deg, #fff4d8, #ffd7be);
+      box-shadow: 0 10px 24px rgba(255,177,125,0.24);
+    }
+    .profile h1 { margin: 0 0 6px; font-size: 18px; }
+    .badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      padding: 6px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(63,109,255,0.1);
+      background: var(--soft);
+      font-size: 12px;
+      color: #41547a;
+    }
+    .tabs { display: flex; gap: 28px; color: #5a6d8f; font-size: 15px; }
+    .tabs span { padding: 10px 0; position: relative; }
+    .tabs .active { color: var(--text); font-weight: 700; }
+    .tabs .active::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 3px;
+      border-radius: 999px; background: var(--primary);
+    }
+    .top-actions { display: flex; gap: 12px; align-items: center; }
+    .monitor, .action-btn, .small-btn {
+      height: 46px; padding: 0 16px; border-radius: 14px; border: 1px solid transparent;
+      background: var(--panel); display: inline-flex; align-items: center; gap: 8px;
+      box-shadow: var(--shadow); cursor: pointer; color: var(--text);
+    }
+    .monitor { min-width: 164px; justify-content: space-between; }
+    .chip {
+      padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line);
+      background: #f8faff; font-size: 12px;
+    }
+    .action-btn { height: 40px; border-color: var(--line); background: linear-gradient(135deg,#f8fbff,#edf3ff); box-shadow: none; }
+    .layout { display: grid; grid-template-columns: minmax(780px, 1fr) 360px; gap: 16px; align-items: start; }
+    .map-shell {
+      background: rgba(255,255,255,0.82); border: 1px solid rgba(219,231,251,0.9);
+      border-radius: 26px; overflow: hidden; backdrop-filter: blur(10px);
+    }
+    .map-header {
+      display: grid; grid-template-columns: 240px 1fr; border-bottom: 1px solid rgba(219,231,251,0.9);
+      background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(249,251,255,0.96));
+    }
+    .course-panel { padding: 16px; border-right: 1px solid rgba(219,231,251,0.9); }
+    .course-panel h3 { margin: 0 0 8px; font-size: 18px; }
+    .course-meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }
+    .levels { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; align-items: center; color: #7d8ba6; font-weight: 600; }
+    .map-body { display: grid; grid-template-columns: 240px 1fr; max-height: calc(100vh - 210px); overflow: auto; }
+    .steps { padding: 16px; border-right: 1px solid rgba(219,231,251,0.9); background: linear-gradient(180deg, rgba(252,253,255,0.96), rgba(245,249,255,0.96)); }
+    .step-card {
+      background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 10px;
+    }
+    .step-card.active { border-color: var(--primary); box-shadow: 0 10px 24px rgba(63,109,255,0.12); }
+    .step-card strong { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 15px; }
+    .step-card span { color: var(--muted); font-size: 13px; }
+    .map-content { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+    .unit-row { display: grid; grid-template-columns: 170px 1fr; gap: 12px; }
+    .unit-label, .unit-box { background: var(--soft-blue); border-radius: 18px; }
+    .unit-label { padding: 18px; }
+    .unit-label h4 { margin: 0 0 10px; font-size: 18px; }
+    .mini-tag { display: inline-block; padding: 4px 8px; border-radius: 10px; background: #dbe8ff; color: var(--primary); font-size: 12px; }
+    .unit-box { padding: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; min-height: 118px; }
+    .task { background: rgba(255,255,255,0.96); border: 1px solid rgba(219,231,251,0.96); border-radius: 14px; padding: 14px; }
+    .task-top { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    .task-title { font-size: 14px; line-height: 1.5; margin-bottom: 8px; }
+    .task-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+    .task-tag { padding: 4px 8px; border-radius: 999px; background: #f2f6fd; color: #4d638b; font-size: 12px; }
+    .task-tag.required { background: #edf3ff; color: var(--primary); }
+    .task-tag.optional { background: #fbf5ea; color: #9a6e24; }
+    .side-column { display: flex; flex-direction: column; gap: 14px; }
+    .side-card {
+      background: rgba(255,255,255,0.84); border: 1px solid rgba(219,231,251,0.92); border-radius: 24px;
+      padding: 18px; box-shadow: var(--shadow); backdrop-filter: blur(10px);
+    }
+    .side-card h3 { margin: 0 0 12px; font-size: 18px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .metric { background: var(--soft); border-radius: 16px; padding: 14px; }
+    .metric span { display: block; margin-bottom: 8px; color: var(--muted); font-size: 12px; }
+    .metric strong { font-size: 16px; line-height: 1.4; }
+    .stack { display: flex; flex-direction: column; gap: 10px; }
+    .stack-item { background: #f8fbff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+    .stack-item strong { display: block; margin-bottom: 6px; font-size: 14px; }
+    .stack-item span { color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .overlay {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: rgba(28,42,76,0.22); padding: 24px;
+    }
+    .overlay.hidden { display: none; }
+    .modal {
+      width: min(1180px, 100%); max-height: calc(100vh - 48px); overflow: auto;
+      border-radius: 30px; padding: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,251,255,0.98));
+      box-shadow: 0 32px 80px rgba(48,78,152,0.22);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .modal-header h2 { margin: 0 0 6px; font-size: 28px; }
+    .modal-header p { margin: 0; color: var(--muted); font-size: 14px; }
+    .close-btn {
+      width: 40px; height: 40px; border-radius: 14px; border: 1px solid var(--line); background: #fff; cursor: pointer;
+    }
+    .modal-layout { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 18px; }
+    .form-card, .preview-card {
+      background: rgba(255,255,255,0.9); border: 1px solid rgba(219,231,251,0.92); border-radius: 24px; padding: 20px;
+    }
+    .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+    .section-head h3 { margin: 0; font-size: 18px; }
+    .section-head span { color: var(--muted); font-size: 13px; }
+    .mode-btn {
+      border: 1px solid var(--line); background: #f7faff; color: #43577f; border-radius: 14px; padding: 12px 16px; cursor: pointer;
+    }
+    .mode-btn.active { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); font-weight: 700; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; margin-bottom: 8px; font-size: 14px; color: #4c6189; }
+    .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .input, .select, .textarea {
+      width: 100%; padding: 13px 14px; border-radius: 16px; border: 1px solid var(--line); background: #f8fbff; color: var(--text); outline: none;
+    }
+    .textarea { resize: vertical; min-height: 88px; }
+    .choice-row, .toggle-row, .tag-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .choice-btn, .toggle-btn, .tag-btn {
+      border: 1px solid var(--line); background: #f7faff; color: #43577f; border-radius: 14px; padding: 12px 16px; cursor: pointer;
+    }
+    .choice-btn.active, .toggle-btn.active, .tag-btn.active {
+      border-color: var(--primary); background: var(--primary-soft); color: var(--primary); font-weight: 700;
+    }
+    .question { background: #f9fbff; border: 1px solid var(--line); border-radius: 18px; padding: 14px; margin-bottom: 12px; }
+    .question strong { display: block; margin-bottom: 10px; font-size: 14px; line-height: 1.7; }
+    .question .toggle-row { flex-wrap: nowrap; }
+    .question .toggle-btn { flex: 1; text-align: center; background: #fff; min-width: 0; }
+    .scale-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .judge-tip {
+      margin-bottom: 14px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: #f5efff;
+      color: #6f58b6;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .preview-card {
+      background: radial-gradient(circle at top right, rgba(63,109,255,0.12), transparent 30%), linear-gradient(180deg, #f8fbff, #ffffff);
+    }
+    .preview-list { display: flex; flex-direction: column; gap: 14px; }
+    .preview-panel { background: rgba(255,255,255,0.92); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
+    .preview-panel h4 { margin: 0 0 10px; font-size: 15px; }
+    .pill-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill-item { padding: 6px 10px; border-radius: 999px; background: #edf3ff; color: var(--primary); font-size: 12px; }
+    .path-item {
+      display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 14px;
+      background: #f8fbff; margin-bottom: 8px;
+    }
+    .path-item span { color: var(--muted); font-size: 13px; }
+    .submit { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 18px; }
+    .submit p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .submit button {
+      border: none; border-radius: 16px; background: linear-gradient(135deg, #3f6dff, #5d86ff); color: #fff;
+      padding: 14px 22px; min-width: 140px; cursor: pointer; box-shadow: 0 16px 32px rgba(63,109,255,0.24); font-weight: 700;
+    }
+    .history-modal { width: min(1280px, 100%); }
+    .history-headline {
+      margin-bottom: 18px; padding: 16px 18px; border-radius: 20px;
+      background: linear-gradient(135deg, #eef4ff, #f8fbff);
+      border: 1px solid var(--line);
+    }
+    .history-headline strong { display: block; margin-bottom: 8px; font-size: 18px; }
+    .history-headline span { color: var(--muted); font-size: 14px; line-height: 1.7; }
+    .history-records {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .history-record-btn {
+      min-width: 180px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      text-align: left;
+    }
+    .history-record-btn.active {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      box-shadow: 0 10px 24px rgba(63,109,255,0.12);
+    }
+    .history-record-btn strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+    .history-record-btn span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .history-shell {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(255,255,255,0.94);
+      padding: 18px;
+      box-shadow: 0 10px 28px rgba(63,109,255,0.08);
+    }
+    .history-top {
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 14px;
+    }
+    .history-top h4 { margin: 0 0 8px; font-size: 20px; }
+    .history-top p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+    .history-time { color: #41547a; font-weight: 700; font-size: 14px; }
+    .history-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .history-tab {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #54627f;
+      border-radius: 14px;
+      padding: 10px 14px;
+      cursor: pointer;
+    }
+    .history-tab.active {
+      background: var(--primary-soft);
+      border-color: #cfdaff;
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .history-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .history-block {
+      border: 1px solid var(--line); border-radius: 18px; background: #fbfdff; padding: 14px;
+    }
+    .history-block h5 { margin: 0 0 10px; font-size: 15px; }
+    .history-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .history-tag { padding: 6px 10px; border-radius: 999px; background: #edf3ff; color: var(--primary); font-size: 12px; }
+    .bullet-list { display: flex; flex-direction: column; gap: 8px; }
+    .bullet-item {
+      padding: 10px 12px; border-radius: 14px; background: #fff; border: 1px solid rgba(219,231,251,0.96);
+      color: #465b82; font-size: 13px; line-height: 1.7;
+    }
+    .progress-highlight {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;
+    }
+    .progress-card {
+      background: linear-gradient(180deg, #fff8eb, #fffdf8); border: 1px solid #ffe3b2; border-radius: 16px; padding: 14px;
+    }
+    .progress-card span { display: block; margin-bottom: 8px; color: #b07216; font-size: 12px; }
+    .progress-card strong { font-size: 15px; line-height: 1.5; color: #7f5718; }
+    .knowledge-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .knowledge-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      padding: 14px;
+    }
+    .knowledge-card span {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .knowledge-card strong {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #fff;
+    }
+    .history-table th,
+    .history-table td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    .history-table th {
+      background: #f5f8ff;
+      color: #536785;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .history-table tr:last-child td {
+      border-bottom: none;
+    }
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .metric-tile {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      padding: 14px;
+    }
+    .metric-tile span {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .metric-tile strong {
+      font-size: 18px;
+      color: var(--text);
+    }
+    .trend-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .trend-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      padding: 14px;
+    }
+    .trend-card h5 {
+      margin: 0 0 12px;
+      font-size: 15px;
+    }
+    .bar-row {
+      margin-bottom: 10px;
+    }
+    .bar-row:last-child {
+      margin-bottom: 0;
+    }
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: #536785;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .bar-track {
+      height: 8px;
+      border-radius: 999px;
+      background: #edf2fb;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #7ba7ff, #456dff);
+    }
+    @media (max-width: 1280px) { .layout { grid-template-columns: 1fr; } }
+    @media (max-width: 960px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .topbar, .layout, .map-header, .map-body, .modal-layout, .field-grid, .unit-row { grid-template-columns: 1fr; }
+      .unit-box { grid-template-columns: 1fr; }
+      .history-grid, .progress-highlight, .knowledge-grid, .metric-strip, .trend-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="back">← 六年级</div>
+      <div class="student-pill">李大壮</div>
+      <div class="lesson-list">
+        <div class="lesson-item active"><strong>今天</strong><span>已学 4 知识点</span></div>
+        <div class="lesson-item"><strong>第2次课</strong><span>待学 1 知识点</span></div>
+        <div class="lesson-item"><strong>第3次课</strong><span>待学 4 知识点</span></div>
+        <div class="lesson-item"><strong>第4次课</strong><span>待学 5 知识点</span></div>
+        <div class="lesson-item"><strong>第5次课</strong><span>待学 2 知识点</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="profile">
+          <div class="avatar">导</div>
+          <div>
+            <h1>李大壮</h1>
+            <div class="badges">
+              <span class="badge">六年级 / 语文 / 部编版下册</span>
+              <span class="badge">校内同步</span>
+              <span class="badge">学习地图</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <span class="active">地图</span>
+          <span>反馈</span>
+          <span>专注度</span>
+          <span>档案</span>
+        </div>
+
+        <div class="top-actions">
+          <div class="monitor">
+            <span>监课（1/2）</span>
+            <span class="chip">金闯</span>
+          </div>
+          <button class="action-btn" id="openHistory">规划记录</button>
+          <button class="action-btn" id="openPlanner">+ 规划</button>
+        </div>
+      </div>
+
+      <div class="layout">
+        <section class="map-shell">
+          <div class="map-header">
+            <div class="course-panel">
+              <h3>课程 <span class="chip" id="planStatus">规划已生成</span></h3>
+              <div class="course-meta">
+                <span>每次课 2.5 小时</span>
+                <span id="planProgressText">基础知识起步</span>
+              </div>
+            </div>
+            <div class="levels">
+              <div>基础</div>
+              <div>进阶</div>
+              <div>拔高及超越</div>
+            </div>
+          </div>
+
+          <div class="map-body">
+            <div class="steps">
+              <div class="step-card active"><strong><span>今天</span><span>已学4知识点</span></strong><span>基础知识</span></div>
+              <div class="step-card"><strong><span>第2次课</span><span>待学1知识点</span></strong><span>语言运用</span></div>
+              <div class="step-card"><strong><span>第3次课</span><span>待学4知识点</span></strong><span>单元阅读</span></div>
+              <div class="step-card"><strong><span>第4次课</span><span>待学5知识点</span></strong><span>高频阅读</span></div>
+              <div class="step-card"><strong><span>第5次课</span><span>待学2知识点</span></strong><span>作文技法</span></div>
+            </div>
+
+            <div class="map-content">
+              <div class="unit-row">
+                <div class="unit-label">
+                  <h4>基础知识</h4>
+                  
+                </div>
+                <div class="unit-box">
+                  <div class="task">
+                    <div class="task-top"><span>基础</span><span>新知学</span></div>
+                    <div class="task-title">4春-第一单元个性练1</div>
+                    <div class="task-tags"><span class="task-tag required">必学</span><span class="task-tag">新知学</span></div>
+                  </div>
+                  <div class="task">
+                    <div class="task-top"><span>基础</span><span>新知学</span></div>
+                    <div class="task-title">4春-第一单元个性练2</div>
+                    <div class="task-tags"><span class="task-tag required">必学</span><span class="task-tag">新知学</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="unit-row">
+                <div class="unit-label">
+                  <h4>语言运用</h4>
+                  
+                </div>
+                <div class="unit-box">
+                  <div class="task">
+                    <div class="task-top"><span>基础</span><span>测学</span></div>
+                    <div class="task-title">陈述句与反问句</div>
+                    <div class="task-tags"><span class="task-tag required">必学</span><span class="task-tag">测学</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="unit-row">
+                <div class="unit-label">
+                  <h4>高频阅读</h4>
+                  
+                </div>
+                <div class="unit-box">
+                  <div class="task">
+                    <div class="task-top"><span>进阶</span><span>新知学</span></div>
+                    <div class="task-title">必考题型-根据内容想象画面</div>
+                    <div class="task-tags"><span class="task-tag optional">选学</span><span class="task-tag">新知学</span></div>
+                  </div>
+                  <div class="task">
+                    <div class="task-top"><span>进阶</span><span>新知学</span></div>
+                    <div class="task-title">必考题型-给画面取名字</div>
+                    <div class="task-tags"><span class="task-tag optional">选学</span><span class="task-tag">新知学</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side-column">
+          <div class="side-card">
+            <h3>学生画像</h3>
+            <div class="summary-grid">
+              <div class="metric"><span>学习成绩</span><strong id="portraitScore">70-94分</strong></div>
+              <div class="metric"><span>学习目标</span><strong id="portraitGoal">同步提升</strong></div>
+              <div class="metric"><span>学习能力</span><strong id="portraitAbility">能力中</strong></div>
+              <div class="metric"><span>学习意愿</span><strong id="portraitMotivation">意愿中</strong></div>
+            </div>
+          </div>
+
+          <div class="side-card">
+            <h3>标签如何影响内容</h3>
+            <div class="stack" id="labelImpacts">
+              <div class="stack-item"><strong>学习成绩</strong><span>影响学习范围，成绩好的学生学习拓展内容，成绩不好的学生学习基础内容。</span></div>
+              <div class="stack-item"><strong>学习能力</strong><span>影响学习方式，能力强的学生优先测学，能力弱的学生直接学习。</span></div>
+              <div class="stack-item"><strong>学习意愿</strong><span>影响测学阈值，意愿强的学生多测，意愿弱的学生少测重要内容。</span></div>
+            </div>
+          </div>
+
+          <div class="side-card">
+            <h3>具体策略</h3>
+            <div class="stack" id="learningRules"></div>
+            <div class="stack" id="practiceRules" style="margin-top:10px;"></div>
+            <div class="stack" id="reviewRules" style="margin-top:10px;"></div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <div class="overlay hidden" id="plannerOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2>开始规划</h2>
+          <p>支持两种方式完成学生标签确认：直接选择标签，或通过问题辅助判断能力与意愿。</p>
+        </div>
+        <button class="close-btn" id="closePlanner">✕</button>
+      </div>
+
+      <div class="modal-layout">
+        <section class="form-card">
+          <div class="section-head">
+            <h3>学生标签确认</h3>
+            <span><button class="mode-btn" id="openJudge" type="button">辅助判断</button></span>
+          </div>
+
+          <div id="directMode">
+            <div class="field">
+              <label>学习成绩</label>
+              <div class="choice-row" id="scoreChoices">
+                <button class="choice-btn" data-score="95分以上">95分以上</button>
+                <button class="choice-btn active" data-score="70-94分">70-94分</button>
+                <button class="choice-btn" data-score="70分以下">70分以下</button>
+              </div>
+            </div>
+
+            <div class="field-grid">
+              <div class="field">
+                <label>学习能力</label>
+                <div class="tag-row" id="abilityDirect">
+                  <button class="tag-btn" data-ability="高">高</button>
+                  <button class="tag-btn active" data-ability="中">中</button>
+                  <button class="tag-btn" data-ability="低">低</button>
+                </div>
+              </div>
+              <div class="field">
+                <label>学习意愿</label>
+                <div class="tag-row" id="motivationDirect">
+                  <button class="tag-btn" data-motivation="高">高</button>
+                  <button class="tag-btn active" data-motivation="中">中</button>
+                  <button class="tag-btn" data-motivation="低">低</button>
+                </div>
+              </div>
+            </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="studyStage">学习目标</label>
+              <select class="select" id="studyStage">
+                <option value="领先校内">领先校内</option>
+                <option value="同步提升" selected>同步提升</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field" id="progressField">
+            <label for="currentProgress">校内进度</label>
+            <select class="select" id="currentProgress">
+              <option>今天｜基础知识</option>
+              <option selected>第2次课｜语言运用</option>
+              <option>第3次课｜单元阅读</option>
+              <option>第4次课｜高频阅读</option>
+              <option>第5次课｜作文技法</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="note">备注</label>
+            <textarea class="textarea" id="note" maxlength="50" placeholder="可填写校内要求、家长期望、阶段目标等"></textarea>
+          </div>
+
+          <div class="submit">
+            <p id="submitNote">系统将根据当前学生标签，生成一份校内同步的个性化规划。</p>
+            <button id="createPlan">新建规划</button>
+          </div>
+        </section>
+
+        <aside class="preview-card">
+          <div class="section-head">
+            <h3>规划预览</h3>
+            <span>信息填完整后出现</span>
+          </div>
+
+          <div class="preview-list" id="previewReady">
+            <div class="preview-panel">
+              <h4>学生画像</h4>
+              <div class="pill-list" id="portraitTags"></div>
+            </div>
+
+            <div class="preview-panel">
+              <h4>标签如何影响内容</h4>
+              <div id="previewLabelImpact"></div>
+            </div>
+
+            <div class="preview-panel">
+              <h4>具体策略</h4>
+              <div id="previewLearningStrategy"></div>
+              <div id="previewPracticeStrategy" style="margin-top:10px;"></div>
+              <div id="previewReviewStrategy" style="margin-top:10px;"></div>
+            </div>
+          </div>
+
+          <div class="preview-panel" id="previewEmpty">
+            <h4>待生成</h4>
+            <div class="path-item"><strong>提示</strong><span>请先完成学习成绩、能力、意愿、学习目标等信息选择。</span></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="judgeOverlay">
+    <div class="modal" style="width:min(880px,100%)">
+      <div class="modal-header">
+        <div>
+          <h2>辅助判断</h2>
+          <p>通过若干选择题辅助判断学生学习能力与学习意愿，点击确定后回填到主表单。</p>
+        </div>
+        <button class="close-btn" id="closeJudge">✕</button>
+      </div>
+
+      <div class="field-grid">
+        <section class="form-card">
+          <div class="section-head">
+            <h3>学习能力判断</h3>
+            <span id="abilityResult">当前结果：能力中</span>
+          </div>
+          <div class="judge-tip">说明：以下问题用于评估学生的学习能力（元认知能力），请根据学生的实际情况选择最符合的选项。</div>
+          <div class="question">
+            <strong>1. 我知道自己什么时候理解了，什么时候没理解。</strong>
+            <div class="toggle-row" data-group="ability1">
+              <button class="toggle-btn" data-value="1">1</button>
+              <button class="toggle-btn" data-value="2">2</button>
+              <button class="toggle-btn active" data-value="3">3</button>
+              <button class="toggle-btn" data-value="4">4</button>
+              <button class="toggle-btn" data-value="5">5</button>
+            </div>
+            <div class="scale-note"><span>很少这样</span><span>经常这样</span></div>
+          </div>
+          <div class="question">
+            <strong>2. 学习时，我会问自己“我懂了吗？”</strong>
+            <div class="toggle-row" data-group="ability2">
+              <button class="toggle-btn" data-value="1">1</button>
+              <button class="toggle-btn" data-value="2">2</button>
+              <button class="toggle-btn active" data-value="3">3</button>
+              <button class="toggle-btn" data-value="4">4</button>
+              <button class="toggle-btn" data-value="5">5</button>
+            </div>
+            <div class="scale-note"><span>很少这样</span><span>经常这样</span></div>
+          </div>
+          <div class="question">
+            <strong>3. 遇到难题，我会停下来想一想。</strong>
+            <div class="toggle-row" data-group="ability3">
+              <button class="toggle-btn" data-value="1">1</button>
+              <button class="toggle-btn" data-value="2">2</button>
+              <button class="toggle-btn active" data-value="3">3</button>
+              <button class="toggle-btn" data-value="4">4</button>
+              <button class="toggle-btn" data-value="5">5</button>
+            </div>
+            <div class="scale-note"><span>很少这样</span><span>经常这样</span></div>
+          </div>
+          <div class="question">
+            <strong>4. 做错题目，我会想为什么错。</strong>
+            <div class="toggle-row" data-group="ability4">
+              <button class="toggle-btn" data-value="1">1</button>
+              <button class="toggle-btn" data-value="2">2</button>
+              <button class="toggle-btn active" data-value="3">3</button>
+              <button class="toggle-btn" data-value="4">4</button>
+              <button class="toggle-btn" data-value="5">5</button>
+            </div>
+            <div class="scale-note"><span>很少这样</span><span>经常这样</span></div>
+          </div>
+          <div class="question">
+            <strong>5. 我会根据情况调整自己的学习方法。</strong>
+            <div class="toggle-row" data-group="ability5">
+              <button class="toggle-btn" data-value="1">1</button>
+              <button class="toggle-btn" data-value="2">2</button>
+              <button class="toggle-btn active" data-value="3">3</button>
+              <button class="toggle-btn" data-value="4">4</button>
+              <button class="toggle-btn" data-value="5">5</button>
+            </div>
+            <div class="scale-note"><span>很少这样</span><span>经常这样</span></div>
+          </div>
+        </section>
+
+        <section class="form-card">
+          <div class="section-head">
+            <h3>学习意愿判断</h3>
+            <span id="motivationResult">当前结果：意愿中</span>
+          </div>
+          <div class="judge-tip">说明：以下问题用于评估学生的学习意愿和自我效能感，请根据学生的实际情况选择最符合的选项。</div>
+          <div class="question">
+            <strong>1. 遇到不会的题目，愿意自己先尝试思考，而不是立刻问答案。</strong>
+            <div class="toggle-row" data-group="motivation1">
+              <button class="toggle-btn" data-value="1">1</button>
+              <button class="toggle-btn" data-value="2">2</button>
+              <button class="toggle-btn active" data-value="3">3</button>
+              <button class="toggle-btn" data-value="4">4</button>
+              <button class="toggle-btn" data-value="5">5</button>
+            </div>
+            <div class="scale-note"><span>很少这样</span><span>经常这样</span></div>
+          </div>
+          <div class="question">
+            <strong>2. 面对困难时，愿意再试几次，而不是说“我不行”。</strong>
+            <div class="toggle-row" data-group="motivation2">
+              <button class="toggle-btn" data-value="1">1</button>
+              <button class="toggle-btn" data-value="2">2</button>
+              <button class="toggle-btn active" data-value="3">3</button>
+              <button class="toggle-btn" data-value="4">4</button>
+              <button class="toggle-btn" data-value="5">5</button>
+            </div>
+            <div class="scale-note"><span>很少这样</span><span>经常这样</span></div>
+          </div>
+          <div class="question">
+            <strong>3. 做错题目后，愿意主动订正并搞懂为什么错。</strong>
+            <div class="toggle-row" data-group="motivation3">
+              <button class="toggle-btn" data-value="1">1</button>
+              <button class="toggle-btn" data-value="2">2</button>
+              <button class="toggle-btn active" data-value="3">3</button>
+              <button class="toggle-btn" data-value="4">4</button>
+              <button class="toggle-btn" data-value="5">5</button>
+            </div>
+            <div class="scale-note"><span>很少这样</span><span>经常这样</span></div>
+          </div>
+          <div class="question">
+            <strong>4. 学习是为了自己想进步，而不是为了不被批评。</strong>
+            <div class="toggle-row" data-group="motivation4">
+              <button class="toggle-btn" data-value="1">1</button>
+              <button class="toggle-btn" data-value="2">2</button>
+              <button class="toggle-btn active" data-value="3">3</button>
+              <button class="toggle-btn" data-value="4">4</button>
+              <button class="toggle-btn" data-value="5">5</button>
+            </div>
+            <div class="scale-note"><span>很少这样</span><span>经常这样</span></div>
+          </div>
+          <div class="question">
+            <strong>5. 愿意主动预习或复习功课。</strong>
+            <div class="toggle-row" data-group="motivation5">
+              <button class="toggle-btn" data-value="1">1</button>
+              <button class="toggle-btn" data-value="2">2</button>
+              <button class="toggle-btn active" data-value="3">3</button>
+              <button class="toggle-btn" data-value="4">4</button>
+              <button class="toggle-btn" data-value="5">5</button>
+            </div>
+            <div class="scale-note"><span>很少这样</span><span>经常这样</span></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="submit">
+        <p>点击“确定”后，将把判断结果同步到主表单中的学习能力和学习意愿标签。</p>
+        <button id="confirmJudge">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="historyOverlay">
+    <div class="modal history-modal">
+      <div class="modal-header">
+        <div>
+          <h2>规划记录</h2>
+          <p>按规划版本查看学生画像、策略规则、学习记录和进步结果。</p>
+        </div>
+        <button class="close-btn" id="closeHistory">✕</button>
+      </div>
+
+      <div class="history-records" id="historyRecordTabs"></div>
+
+      <div class="history-shell">
+        <div class="history-top">
+          <div>
+            <h4 id="historyTitle">同步提升规划 v3</h4>
+            <p id="historySubtitle">规划记录明细</p>
+          </div>
+          <div class="history-time" id="historyTime">2026-03-31 19:42</div>
+        </div>
+
+        <div class="history-tabs" id="historyDetailTabs">
+          <button class="history-tab active" data-history-tab="portrait">学生画像</button>
+          <button class="history-tab" data-history-tab="strategy">策略内容</button>
+          <button class="history-tab" data-history-tab="record">学习记录</button>
+          <button class="history-tab" data-history-tab="result">进步结果</button>
+        </div>
+
+        <div id="historyContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var state = {
+        scoreTarget: "70-94分",
+        stage: "同步提升",
+        abilityDirect: "中",
+        motivationDirect: "中",
+        currentProgress: "第2次课｜语言运用",
+        abilityAnswers: [3, 3, 3, 3, 3],
+        motivationAnswers: [3, 3, 3, 3, 3],
+        historyRecordIndex: 0,
+        historyTab: "portrait"
+      };
+
+      var historyData = [
+        {
+          title: "同步提升规划 v3",
+          time: "2026-03-31 19:42",
+          subtitle: "围绕校内进度推进的最新版本",
+          profileRows: [
+            ["学习成绩", "70-94分", "学习范围", "重点主线内容"],
+            ["学习能力", "能力中", "学习方式", "先学后测"],
+            ["学习意愿", "意愿中", "测学阈值", "重点内容测学"],
+            ["学习目标", "同步提升", "校内进度", "第2次课｜语言运用"]
+          ],
+          strategyRows: [
+            ["学习策略", "重点基础内容优先学，题型类内容先学后测"],
+            ["练习策略", "重点题与典型错题并行，练习量控制在可完成范围内"],
+            ["复习策略", "章节复习自动推送，考前补阶段复盘"]
+          ],
+          recordMetrics: [
+            { label: "完成知识点", value: "4个" },
+            { label: "完成任务", value: "3项" },
+            { label: "完成练习", value: "1次" },
+            { label: "完成率", value: "80%" }
+          ],
+          recordByDate: [
+            ["03-24", "4春-第一单元个性练1", "新知学", "完成"],
+            ["03-25", "4春-第一单元个性练2", "新知学", "完成"],
+            ["03-28", "陈述句与反问句", "测学", "完成"],
+            ["03-29", "错题回流练习", "练习", "完成"]
+          ],
+          knowledgeRows: [
+            ["基础知识", "2个知识点", "已完成"],
+            ["语言运用", "1个知识点", "已完成"],
+            ["错题回流", "1次练习", "已完成"]
+          ],
+          resultMetrics: [
+            { label: "专注度", current: 76, previous: 62 },
+            { label: "正确率", current: 82, previous: 68 },
+            { label: "完成率", current: 80, previous: 60 }
+          ],
+          resultCards: [
+            { label: "知识进度", value: "语言运用主线已推进" },
+            { label: "能力表现", value: "能独立识别陈述句与反问句差异" },
+            { label: "外化结果", value: "近期课堂正确率提升 14%" }
+          ]
+        },
+        {
+          title: "领先校内规划 v2",
+          time: "2026-03-18 20:15",
+          subtitle: "以提前覆盖校内重点内容为目标",
+          profileRows: [
+            ["学习成绩", "95分以上", "学习范围", "主线 + 拓展内容"],
+            ["学习能力", "能力强", "学习方式", "题型类优先测学"],
+            ["学习意愿", "意愿高", "测学阈值", "全测"],
+            ["学习目标", "领先校内", "推进状态", "领先一个小阶段"]
+          ],
+          strategyRows: [
+            ["学习策略", "主线外增加拓展内容，题型类优先测学"],
+            ["练习策略", "增加综合题和拓展练习，保持内容上限"],
+            ["复习策略", "复习范围更完整，兼顾重点和非重点检测"]
+          ],
+          recordMetrics: [
+            { label: "完成知识点", value: "6个" },
+            { label: "完成任务", value: "6项" },
+            { label: "章节复习", value: "1次" },
+            { label: "完成率", value: "92%" }
+          ],
+          recordByDate: [
+            ["03-19", "必考题型-根据内容想象画面", "测学", "通过"],
+            ["03-20", "必考题型-给画面取名字", "新知学", "完成"],
+            ["03-22", "单元阅读综合题", "测学", "通过"],
+            ["03-24", "章节复习任务", "复习", "完成"]
+          ],
+          knowledgeRows: [
+            ["高频阅读", "2个拓展题型", "已完成"],
+            ["单元阅读", "2个知识点", "已完成"],
+            ["章节复习", "1个阶段任务", "已完成"]
+          ],
+          resultMetrics: [
+            { label: "专注度", current: 88, previous: 79 },
+            { label: "正确率", current: 91, previous: 83 },
+            { label: "完成率", current: 92, previous: 84 }
+          ],
+          resultCards: [
+            { label: "知识进度", value: "提前完成高频阅读主线" },
+            { label: "学习效率", value: "测学通过率高，重复学习减少" },
+            { label: "外化结果", value: "已提前学到校内后续重点内容" }
+          ]
+        }
+      ];
+
+      var overlay = document.getElementById("plannerOverlay");
+      var judgeOverlay = document.getElementById("judgeOverlay");
+      var historyOverlay = document.getElementById("historyOverlay");
+
+      function setSingleActive(container, target, selector) {
+        var nodes = container.querySelectorAll(selector);
+        for (var i = 0; i < nodes.length; i += 1) {
+          nodes[i].classList.toggle("active", nodes[i] === target);
+        }
+      }
+
+      function calcLevel(values) {
+        var sum = values.reduce(function (a, b) { return a + b; }, 0);
+        var avg = sum / values.length;
+        if (avg >= 4) return "高";
+        if (avg <= 2.5) return "低";
+        return "中";
+      }
+
+      function ability() {
+        return "能力" + state.abilityDirect;
+      }
+
+      function motivation() {
+        return "意愿" + state.motivationDirect;
+      }
+
+      function studentSegment() {
+        var score = state.scoreTarget;
+        var a = ability();
+        var m = motivation();
+        if (score === "95分以上" && a === "能力高" && m === "意愿高") return "优等生/优潜生";
+        if (score === "70分以下") return "后进生";
+        if (score === "70-94分" && a !== "能力高" && m === "意愿高") return "努力的中等生";
+        if (score === "70-94分" && a === "能力高" && m !== "意愿高") return "意愿不足的中等生";
+        if (score === "70-94分" && a !== "能力高" && m !== "意愿高") return "薄弱的中等生";
+        return "混合型学生";
+      }
+
+      function labelImpactList() {
+        var scoreText = state.scoreTarget === "95分以上"
+          ? "学习范围偏拓展，优先加入更多拓展内容。"
+          : (state.scoreTarget === "70分以下"
+            ? "学习范围偏基础，优先保证基础内容先学会。"
+            : "学习范围基础与拓展并行，以重点主线内容为主。");
+
+        var abilityText = state.abilityDirect === "高"
+          ? "题型类内容优先采用测学方式，避免重复学习已掌握内容。"
+          : (state.abilityDirect === "低"
+            ? "题型类内容优先直接学习，帮助学生循序渐进建立理解。"
+            : "题型类内容先学后测，兼顾效率与稳定性。");
+
+        var motivationText = state.motivationDirect === "高"
+          ? "测学阈值更高，重要内容与非重要内容都可进入测学。"
+          : (state.motivationDirect === "低"
+            ? "减少测学范围，只对重要内容进行测学，降低抵触情绪。"
+            : "保留重点内容测学，控制整体测学量。");
+
+        return [
+          "学习成绩： " + scoreText,
+          "学习能力： " + abilityText,
+          "学习意愿： " + motivationText
+        ];
+      }
+
+      function learningStrategyList() {
+        var list = [];
+        if (state.scoreTarget === "95分以上") {
+          list.push("在主线内容外补充拓展内容，让学生保持领先校内的学习空间。");
+        } else if (state.scoreTarget === "70分以下") {
+          list.push("优先学习基础内容，先保证学生跟上主线，再逐步拓展。");
+        } else {
+          list.push("优先学习重点主线内容，基础和少量拓展并行推进。");
+        }
+
+        if (state.abilityDirect === "高") {
+          list.push("题型类内容优先测学，能做对的内容不再重复讲解。");
+        } else if (state.abilityDirect === "低") {
+          list.push("题型类内容优先直接学习，降低理解门槛。");
+        } else {
+          list.push("题型类内容采用先学后测，兼顾效率和稳定性。");
+        }
+
+        if (state.stage === "领先校内") {
+          list.push("整体内容安排以领先校内为目标，重点知识提前覆盖。");
+        } else {
+          list.push("整体内容安排以同步提升为目标，优先贴合当前校内进度。");
+        }
+        return list;
+      }
+
+      function practiceStrategyList() {
+        var list = [];
+        if (state.motivationDirect === "高") {
+          list.push("练习内容可以覆盖更完整的测学与巩固任务，帮助学生全面暴露问题。");
+        } else if (state.motivationDirect === "低") {
+          list.push("练习内容控制在重点题和必要错题，避免练习过重影响执行意愿。");
+        } else {
+          list.push("练习内容聚焦重点题与典型错题，保证完成度。");
+        }
+
+        if (state.scoreTarget === "95分以上") {
+          list.push("适当补充拓展练习，帮助学生保持上限。");
+        } else if (state.scoreTarget === "70分以下") {
+          list.push("练习以基础题和核心题型为主，先建立稳定正确率。");
+        } else {
+          list.push("练习以主线题型为主，兼顾基础巩固与适量提升。");
+        }
+        return list;
+      }
+
+      function reviewStrategyList() {
+        var list = [
+          "章节学完后自动安排章节复习任务，帮助学生完成阶段性回看。",
+          "接近期中期末时自动生成复习任务，承接阶段目标。"
+        ];
+        if (state.motivationDirect === "低") {
+          list.push("复习任务优先保留重要内容，减少非关键检测负担。");
+        } else if (state.motivationDirect === "高") {
+          list.push("复习任务可覆盖更完整的检测范围，帮助系统性查漏补缺。");
+        } else {
+          list.push("复习任务聚焦重点知识和近期薄弱内容。");
+        }
+        return list;
+      }
+
+      function resultLevel(values, high, low) {
+        return calcLevel(values);
+      }
+
+      function isReady() {
+        if (!state.scoreTarget || !state.abilityDirect || !state.motivationDirect || !state.stage) return false;
+        if (state.stage === "同步提升" && !state.currentProgress) return false;
+        return true;
+      }
+
+      function renderPreview() {
+        document.getElementById("previewReady").style.display = isReady() ? "flex" : "none";
+        document.getElementById("previewEmpty").style.display = isReady() ? "none" : "block";
+        document.getElementById("abilityResult").textContent = "当前结果：能力" + resultLevel(state.abilityAnswers);
+        document.getElementById("motivationResult").textContent = "当前结果：意愿" + resultLevel(state.motivationAnswers);
+        if (!isReady()) return;
+
+        document.getElementById("portraitTags").innerHTML = [
+          state.scoreTarget,
+          ability(),
+          motivation(),
+          state.stage
+        ].map(function (item) {
+          return '<span class="pill-item">' + item + '</span>';
+        }).join("");
+
+        document.getElementById("previewLabelImpact").innerHTML = labelImpactList().map(function (item, index) {
+          return '<div class="path-item"><strong>影响 ' + (index + 1) + '</strong><span>' + item + '</span></div>';
+        }).join("");
+
+        document.getElementById("previewLearningStrategy").innerHTML = '<div class="stack-item"><strong>学习策略</strong><span>' + learningStrategyList().join('；') + '</span></div>';
+        document.getElementById("previewPracticeStrategy").innerHTML = '<div class="stack-item"><strong>练习策略</strong><span>' + practiceStrategyList().join('；') + '</span></div>';
+        document.getElementById("previewReviewStrategy").innerHTML = '<div class="stack-item"><strong>复习策略</strong><span>' + reviewStrategyList().join('；') + '</span></div>';
+      }
+
+      function renderSummary() {
+        document.getElementById("planProgressText").textContent = state.stage === "同步提升" ? "按校内进度生成" : "领先校内生成";
+        document.getElementById("portraitScore").textContent = state.scoreTarget;
+        document.getElementById("portraitGoal").textContent = state.stage;
+        document.getElementById("portraitAbility").textContent = ability();
+        document.getElementById("portraitMotivation").textContent = motivation();
+
+        document.getElementById("labelImpacts").innerHTML = isReady() ? labelImpactList().map(function (item, index) {
+          var titles = ["学习成绩", "学习能力", "学习意愿"];
+          return '<div class="stack-item"><strong>' + titles[index] + '</strong><span>' + item.replace(titles[index] + '： ', '') + '</span></div>';
+        }).join("") : '<div class="stack-item"><strong>待生成</strong><span>请先完成学习成绩、能力、意愿和学习目标选择。</span></div>';
+
+        document.getElementById("learningRules").innerHTML = isReady() ? '<div class="stack-item"><strong>学习策略</strong><span>' + learningStrategyList().join('；') + '</span></div>' : '<div class="stack-item"><strong>待生成</strong><span>请先完成学习成绩、能力、意愿和学习目标选择。</span></div>';
+        document.getElementById("practiceRules").innerHTML = isReady() ? '<div class="stack-item"><strong>练习策略</strong><span>' + practiceStrategyList().join('；') + '</span></div>' : '';
+        document.getElementById("reviewRules").innerHTML = isReady() ? '<div class="stack-item"><strong>复习策略</strong><span>' + reviewStrategyList().join('；') + '</span></div>' : '';
+      }
+
+      function renderHistory() {
+        document.getElementById("historyRecordTabs").innerHTML = historyData.map(function (item, index) {
+          return '<button class="history-record-btn' + (index === state.historyRecordIndex ? ' active' : '') + '" data-history-record="' + index + '"><strong>' + item.title + '</strong><span>' + item.time + '</span></button>';
+        }).join("");
+
+        document.querySelectorAll("#historyDetailTabs .history-tab").forEach(function (tab) {
+          tab.classList.toggle("active", tab.getAttribute("data-history-tab") === state.historyTab);
+        });
+
+        var current = historyData[state.historyRecordIndex];
+        document.getElementById("historyTitle").textContent = current.title;
+        document.getElementById("historyTime").textContent = current.time;
+        document.getElementById("historySubtitle").textContent = current.subtitle;
+
+        if (state.historyTab === "portrait") {
+          document.getElementById("historyContent").innerHTML =
+            '<div class="history-block">' +
+              '<h5>学生画像与规则</h5>' +
+              '<table class="history-table">' +
+                '<thead><tr><th>标签维度</th><th>标签值</th><th>规则维度</th><th>规则值</th></tr></thead>' +
+                '<tbody>' +
+                  current.profileRows.map(function (row) {
+                    return '<tr><td>' + row[0] + '</td><td>' + row[1] + '</td><td>' + row[2] + '</td><td>' + row[3] + '</td></tr>';
+                  }).join("") +
+                '</tbody>' +
+              '</table>' +
+            '</div>' +
+            '<div class="history-block" style="margin-top:16px;">' +
+              '<h5>策略总览</h5>' +
+              '<table class="history-table">' +
+                '<thead><tr><th>策略类型</th><th>策略内容</th></tr></thead>' +
+                '<tbody>' +
+                  current.strategyRows.map(function (row) {
+                    return '<tr><td>' + row[0] + '</td><td>' + row[1] + '</td></tr>';
+                  }).join("") +
+                '</tbody>' +
+              '</table>' +
+            '</div>';
+        }
+
+        if (state.historyTab === "strategy") {
+          document.getElementById("historyContent").innerHTML =
+            '<div class="history-block">' +
+              '<h5>策略配置</h5>' +
+              '<table class="history-table">' +
+                '<thead><tr><th>策略类型</th><th>触发逻辑</th></tr></thead>' +
+                '<tbody>' +
+                  current.strategyRows.map(function (row) {
+                    return '<tr><td>' + row[0] + '</td><td>' + row[1] + '</td></tr>';
+                  }).join("") +
+                '</tbody>' +
+              '</table>' +
+            '</div>';
+        }
+
+        if (state.historyTab === "record") {
+          document.getElementById("historyContent").innerHTML =
+            '<div class="metric-strip">' +
+              current.recordMetrics.map(function (item) {
+                return '<div class="metric-tile"><span>' + item.label + '</span><strong>' + item.value + '</strong></div>';
+              }).join("") +
+            '</div>' +
+            '<div class="history-block" style="margin-top:16px;">' +
+              '<h5>按日期汇总</h5>' +
+              '<table class="history-table">' +
+                '<thead><tr><th>日期</th><th>学习内容</th><th>类型</th><th>状态</th></tr></thead>' +
+                '<tbody>' +
+                  current.recordByDate.map(function (row) {
+                    return '<tr><td>' + row[0] + '</td><td>' + row[1] + '</td><td>' + row[2] + '</td><td>' + row[3] + '</td></tr>';
+                  }).join("") +
+                '</tbody>' +
+              '</table>' +
+            '</div>' +
+            '<div class="history-block" style="margin-top:16px;">' +
+              '<h5>内容推进</h5>' +
+              '<table class="history-table">' +
+                '<thead><tr><th>模块</th><th>完成情况</th><th>状态</th></tr></thead>' +
+                '<tbody>' +
+                  current.knowledgeRows.map(function (row) {
+                    return '<tr><td>' + row[0] + '</td><td>' + row[1] + '</td><td>' + row[2] + '</td></tr>';
+                  }).join("") +
+                '</tbody>' +
+              '</table>' +
+            '</div>';
+        }
+
+        if (state.historyTab === "result") {
+          document.getElementById("historyContent").innerHTML =
+            '<div class="trend-grid">' +
+              current.resultMetrics.map(function (item) {
+                var previousWidth = Math.max(0, Math.min(100, item.previous));
+                var currentWidth = Math.max(0, Math.min(100, item.current));
+                return '<div class="trend-card">' +
+                  '<div class="bar-row"><span class="bar-label">' + item.label + '</span><strong>' + item.current + '%</strong></div>' +
+                  '<div class="bar-track"><div class="bar-fill" style="width:' + currentWidth + '%;"></div></div>' +
+                  '<div class="bar-row" style="margin-top:10px;"><span class="bar-label">上次</span><strong>' + item.previous + '%</strong></div>' +
+                  '<div class="bar-track"><div class="bar-fill" style="width:' + previousWidth + '%; background:linear-gradient(90deg,#c6d4ff 0%,#dbe4ff 100%);"></div></div>' +
+                '</div>';
+              }).join("") +
+            '</div>' +
+            '<div class="history-block" style="margin-top:16px;">' +
+              '<h5>结果摘要</h5>' +
+              '<table class="history-table">' +
+                '<thead><tr><th>维度</th><th>结果</th></tr></thead>' +
+                '<tbody>' +
+                  current.resultCards.map(function (item) {
+                    return '<tr><td>' + item.label + '</td><td>' + item.value + '</td></tr>';
+                  }).join("") +
+                '</tbody>' +
+              '</table>' +
+            '</div>';
+        }
+      }
+
+      document.addEventListener("click", function (event) {
+        if (event.target.id === "openPlanner") overlay.classList.remove("hidden");
+        if (event.target.id === "closePlanner" || event.target === overlay) overlay.classList.add("hidden");
+        if (event.target.id === "openJudge") judgeOverlay.classList.remove("hidden");
+        if (event.target.id === "closeJudge" || event.target === judgeOverlay) judgeOverlay.classList.add("hidden");
+        if (event.target.id === "openHistory") {
+          historyOverlay.classList.remove("hidden");
+          renderHistory();
+        }
+        if (event.target.id === "closeHistory" || event.target === historyOverlay) historyOverlay.classList.add("hidden");
+
+        var recordBtn = event.target.closest("[data-history-record]");
+        if (recordBtn) {
+          state.historyRecordIndex = Number(recordBtn.getAttribute("data-history-record"));
+          renderHistory();
+        }
+
+        var detailTab = event.target.closest("[data-history-tab]");
+        if (detailTab) {
+          state.historyTab = detailTab.getAttribute("data-history-tab");
+          renderHistory();
+        }
+
+        var scoreBtn = event.target.closest("[data-score]");
+        if (scoreBtn) {
+          state.scoreTarget = scoreBtn.getAttribute("data-score");
+          setSingleActive(document.getElementById("scoreChoices"), scoreBtn, ".choice-btn");
+          renderPreview();
+          renderSummary();
+        }
+
+        var abilityBtn = event.target.closest("#abilityDirect [data-ability]");
+        if (abilityBtn) {
+          state.abilityDirect = abilityBtn.getAttribute("data-ability");
+          setSingleActive(document.getElementById("abilityDirect"), abilityBtn, ".tag-btn");
+          renderPreview();
+          renderSummary();
+        }
+
+        var motivationBtn = event.target.closest("#motivationDirect [data-motivation]");
+        if (motivationBtn) {
+          state.motivationDirect = motivationBtn.getAttribute("data-motivation");
+          setSingleActive(document.getElementById("motivationDirect"), motivationBtn, ".tag-btn");
+          renderPreview();
+          renderSummary();
+        }
+
+        var toggleBtn = event.target.closest(".question .toggle-btn");
+        if (toggleBtn) {
+          var row = toggleBtn.parentNode;
+          var group = row.getAttribute("data-group");
+          setSingleActive(row, toggleBtn, ".toggle-btn");
+          var value = Number(toggleBtn.getAttribute("data-value"));
+          if (group.indexOf("ability") === 0) state.abilityAnswers[Number(group.slice(-1)) - 1] = value;
+          if (group.indexOf("motivation") === 0) state.motivationAnswers[Number(group.slice(-1)) - 1] = value;
+          renderPreview();
+          renderSummary();
+        }
+
+        if (event.target.id === "confirmJudge") {
+          state.abilityDirect = resultLevel(state.abilityAnswers);
+          state.motivationDirect = resultLevel(state.motivationAnswers);
+          setSingleActive(document.getElementById("abilityDirect"), document.querySelector('#abilityDirect [data-ability="' + state.abilityDirect + '"]'), ".tag-btn");
+          setSingleActive(document.getElementById("motivationDirect"), document.querySelector('#motivationDirect [data-motivation="' + state.motivationDirect + '"]'), ".tag-btn");
+          judgeOverlay.classList.add("hidden");
+          renderPreview();
+          renderSummary();
+        }
+
+        if (event.target.id === "createPlan") {
+          overlay.classList.add("hidden");
+          document.getElementById("planStatus").textContent = "规划已更新";
+          renderSummary();
+        }
+      });
+
+      document.getElementById("studyStage").addEventListener("change", function (event) {
+        state.stage = event.target.value;
+        document.getElementById("progressField").style.display = state.stage === "同步提升" ? "block" : "none";
+        document.getElementById("submitNote").textContent = "系统将根据当前学生标签，生成一份" + state.stage + "的个性化规划。";
+        renderPreview();
+        renderSummary();
+      });
+      document.getElementById("currentProgress").addEventListener("change", function (event) {
+        state.currentProgress = event.target.value;
+        renderPreview();
+        renderSummary();
+      });
+
+      document.getElementById("progressField").style.display = state.stage === "同步提升" ? "block" : "none";
+      renderPreview();
+      renderSummary();
+    }());
+  </script>
+</body>
+</html>

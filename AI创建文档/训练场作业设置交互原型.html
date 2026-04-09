@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>训练场作业设置交互原型</title>
+  <style>
+    :root {
+      --bg: #eef4ff;
+      --panel: #ffffff;
+      --panel-soft: #f7faff;
+      --line: #dfe8f7;
+      --text: #2c3550;
+      --muted: #8c97ad;
+      --primary: #4a6cff;
+      --primary-soft: #edf2ff;
+      --blue-soft: #dff1ff;
+      --purple-soft: #efe8ff;
+      --green-soft: #e8f8ee;
+      --shadow: 0 14px 40px rgba(80, 110, 180, 0.12);
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background: linear-gradient(180deg, #edf3ff 0%, #f7f9ff 100%);
+    }
+    button, input, select { font: inherit; }
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 18px;
+      padding: 18px;
+    }
+    .sidebar,
+    .content {
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(221, 231, 247, 0.95);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+    }
+    .sidebar {
+      padding: 18px 16px;
+    }
+    .back {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+    .student-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .student {
+      padding: 16px 18px;
+      border-radius: 16px;
+      color: #40506f;
+    }
+    .student.active {
+      background: #dfefff;
+      color: #3e65ff;
+      font-weight: 700;
+    }
+    .content {
+      padding: 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .topbar {
+      padding: 20px 28px 12px;
+      background: linear-gradient(180deg, rgba(224, 235, 255, 0.95) 0%, rgba(236, 243, 255, 0.9) 100%);
+    }
+    .top-row,
+    .tab-row,
+    .subject-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .top-row {
+      margin-bottom: 18px;
+    }
+    .name {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .nav-tabs,
+    .subject-tabs,
+    .action-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .nav-tab,
+    .subject-tab,
+    .ghost-action,
+    .quick-btn {
+      border-radius: 14px;
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 10px 16px;
+      color: #4d5f80;
+      cursor: pointer;
+    }
+    .nav-tab.active {
+      background: var(--panel);
+      color: var(--primary);
+      box-shadow: 0 4px 14px rgba(73, 108, 255, 0.12);
+    }
+    .subject-tab {
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(215, 224, 242, 0.95);
+    }
+    .page-body {
+      padding: 22px 26px 28px;
+      background: #fff;
+      min-height: calc(100vh - 220px);
+    }
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .page-head h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .page-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .page-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .config-btn,
+    .save-btn,
+    .reset-btn,
+    .close-btn {
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      padding: 0 18px;
+      cursor: pointer;
+    }
+    .config-btn,
+    .save-btn {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(74, 108, 255, 0.2);
+    }
+    .reset-btn,
+    .close-btn,
+    .ghost-action {
+      background: #fff;
+      border-color: var(--line);
+      color: #4f617f;
+    }
+    .quick-create {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .quick-card {
+      border-radius: 18px;
+      padding: 18px;
+      min-height: 144px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(220, 230, 247, 0.9);
+    }
+    .quick-card.blue { background: linear-gradient(135deg, #dff4ff, #edfaff); }
+    .quick-card.indigo { background: linear-gradient(135deg, #edf1ff, #f4f6ff); }
+    .quick-card.purple { background: linear-gradient(135deg, #f5ecff, #f9f5ff); }
+    .quick-card h3 {
+      margin: 0 0 6px;
+      font-size: 20px;
+    }
+    .quick-card p {
+      margin: 0 0 18px;
+      color: #72809a;
+      font-size: 13px;
+    }
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .quick-btn {
+      background: rgba(255, 255, 255, 0.78);
+      border-color: rgba(220, 228, 243, 0.9);
+      font-weight: 600;
+    }
+    .section-title {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .section-title .muted {
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .work-card {
+      min-height: 114px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #fbfdff, #f5f8ff);
+      border: 1px solid #dfe8fb;
+      padding: 16px;
+    }
+    .work-card h4 {
+      margin: 0 0 14px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .work-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 13px;
+    }
+
+    .drawer-mask {
+      position: absolute;
+      inset: 0;
+      background: rgba(36, 50, 74, 0.18);
+      display: none;
+    }
+    .drawer-mask.show {
+      display: block;
+    }
+    .drawer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 460px;
+      height: 100%;
+      background: #fff;
+      border-left: 1px solid var(--line);
+      box-shadow: -18px 0 32px rgba(79, 104, 160, 0.14);
+      transform: translateX(100%);
+      transition: transform 0.28s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .drawer.show {
+      transform: translateX(0);
+    }
+    .drawer-head {
+      padding: 20px 22px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .drawer-head h3 {
+      margin: 0 0 6px;
+      font-size: 20px;
+    }
+    .drawer-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px 18px 8px;
+      background: #fbfcff;
+    }
+    .config-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 22px rgba(86, 108, 163, 0.06);
+    }
+    .config-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .config-head h4 {
+      margin: 0 0 6px;
+      font-size: 17px;
+    }
+    .config-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .switch {
+      width: 52px;
+      height: 30px;
+      border-radius: 999px;
+      background: #d7ddea;
+      position: relative;
+      cursor: pointer;
+      border: 0;
+      flex: none;
+    }
+    .switch::after {
+      content: "";
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      transition: all 0.2s ease;
+    }
+    .switch.active {
+      background: var(--primary);
+    }
+    .switch.active::after {
+      left: 26px;
+    }
+    .fields {
+      display: grid;
+      gap: 14px;
+      margin-top: 10px;
+    }
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: #5f6d86;
+      margin-bottom: 8px;
+    }
+    .select,
+    .number-input {
+      width: 100%;
+      height: 42px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      padding: 0 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+    .select:focus,
+    .number-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(74, 108, 255, 0.1);
+    }
+    .inline {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 42px;
+      padding: 0 2px;
+      color: #42526d;
+    }
+    .checkbox-row input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+    }
+    .hint {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: #f5f8ff;
+      color: #687893;
+      line-height: 1.7;
+      font-size: 13px;
+    }
+    .disabled-block {
+      opacity: 0.42;
+      pointer-events: none;
+    }
+    .drawer-foot {
+      border-top: 1px solid var(--line);
+      background: #fff;
+      padding: 16px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .preview {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: #5d6d88;
+      font-size: 12px;
+    }
+    .foot-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 26px;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(44, 53, 80, 0.92);
+      color: #fff;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 13px;
+      opacity: 0;
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 1400px) {
+      .quick-create,
+      .card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="back">← 寒假二期课程</div>
+      <div class="student-list">
+        <div class="student active">李梓萌</div>
+        <div class="student">乐乐</div>
+        <div class="student">子渔</div>
+        <div class="student">张心昕</div>
+        <div class="student">小九</div>
+        <div class="student">杨卓桐十二</div>
+        <div class="student">刘子瑜</div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div class="top-row">
+          <div class="name">🦊 李梓萌</div>
+          <div class="action-row">
+            <button class="ghost-action">识图搜题</button>
+            <button class="ghost-action">学习权限</button>
+            <button class="ghost-action">5100</button>
+          </div>
+        </div>
+        <div class="tab-row">
+          <div class="nav-tabs">
+            <button class="nav-tab">地图</button>
+            <button class="nav-tab">反馈</button>
+            <button class="nav-tab">专注度</button>
+            <button class="nav-tab">档案</button>
+            <button class="nav-tab active">训练场</button>
+          </div>
+        </div>
+        <div class="subject-row" style="margin-top:16px;">
+          <div class="subject-tabs">
+            <button class="subject-tab">物 初三人教版/下册</button>
+            <button class="subject-tab">英 通用年级/kpf备考版/上册</button>
+            <button class="subject-tab">语 四年级部编版/下册</button>
+            <button class="subject-tab">数 初三人教版/上册</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-body">
+        <div class="page-head">
+          <div>
+            <h2>快捷创建</h2>
+            <p>在训练场内快速创建补充学习、练习与测评任务。</p>
+          </div>
+          <div class="page-actions">
+            <button class="reset-btn">训练场说明</button>
+            <button class="config-btn" id="openDrawer">作业设置</button>
+          </div>
+        </div>
+
+        <section class="quick-create">
+          <div class="quick-card blue">
+            <h3>补充学习</h3>
+            <p>薄弱知识点的补充学习</p>
+            <div class="quick-actions">
+              <button class="quick-btn">手动选择</button>
+              <button class="quick-btn">图片识别</button>
+            </div>
+          </div>
+          <div class="quick-card indigo">
+            <h3>补充练习</h3>
+            <p>根据不同场景选定练习内容</p>
+            <div class="quick-actions">
+              <button class="quick-btn">专项练习</button>
+              <button class="quick-btn">错题重练</button>
+            </div>
+          </div>
+          <div class="quick-card purple">
+            <h3>测评考试</h3>
+            <p>查漏补缺、真题模拟</p>
+            <div class="quick-actions">
+              <button class="quick-btn">先测后学</button>
+              <button class="quick-btn">真题测试</button>
+            </div>
+          </div>
+        </section>
+
+        <div class="section-title">
+          <span>待完成（14）</span>
+          <span class="muted">已完成</span>
+        </div>
+        <section class="card-grid">
+          <div class="work-card">
+            <h4>每日课后作业 2026-03-25</h4>
+            <p>20题 | 错题优先 | 下课前10分钟生成</p>
+          </div>
+          <div class="work-card">
+            <h4>章节复习作业 第三章</h4>
+            <p>章节完成后自动推送 | 待学习</p>
+          </div>
+          <div class="work-card">
+            <h4>错题重练 2026-02-05</h4>
+            <p>8题 | 待学习 | 2月5日</p>
+          </div>
+          <div class="work-card">
+            <h4>专项练习 2026-02-04</h4>
+            <p>35题 | 待学习 | 2月4日</p>
+          </div>
+          <div class="work-card">
+            <h4>期中期末复习作业</h4>
+            <p>考前自动生成 | 当前已启用</p>
+          </div>
+        </section>
+      </div>
+
+      <div class="drawer-mask" id="drawerMask"></div>
+      <aside class="drawer" id="drawer">
+        <div class="drawer-head">
+          <div>
+            <h3>作业设置</h3>
+            <p>老师可以提前设置训练场自动创建的三类作业。系统会按你的设置自动生成并推送，减少课后临时操作。</p>
+          </div>
+          <button class="close-btn" id="closeDrawer">关闭</button>
+        </div>
+
+        <div class="drawer-body">
+          <section class="config-card">
+            <div class="config-head">
+              <div>
+                <h4>每日课后作业</h4>
+                <p>覆盖课后当日巩固，可设置生成时机、题量和出题偏好。</p>
+              </div>
+              <button class="switch active" id="dailySwitch" aria-label="启用每日课后作业"></button>
+            </div>
+            <div class="fields" id="dailyFields">
+              <div class="field">
+                <label>生成时间</label>
+                <select class="select" id="dailyTiming">
+                  <option>下课前10分钟后</option>
+                  <option>下课前20分钟后</option>
+                  <option>下课前30分钟后</option>
+                  <option>下课前5分钟</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>题目数量限制（10~30题）</label>
+                <div class="inline">
+                  <input class="number-input" id="dailyCount" type="number" min="10" max="30" value="20" />
+                  <span style="color:#6d7b95;">题</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>出题偏好</label>
+                <div class="checkbox-row">
+                  <input type="checkbox" id="wrongFirst" checked />
+                  <span>优先从学生错题本选题，不足时补充新题</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>自动创建汇编作业</label>
+                <div class="checkbox-row">
+                  <input type="checkbox" id="compilationAgree" checked />
+                  <span>同意系统在检测到符合规则的题目汇编时，自动额外创建并推送一份汇编作业</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="config-card">
+            <div class="config-head">
+              <div>
+                <h4>章节复习作业</h4>
+                <p>章节学习完成后自动创建阶段性复习任务，无需老师配置时间与题量。</p>
+              </div>
+              <button class="switch active" id="chapterSwitch" aria-label="启用章节复习作业"></button>
+            </div>
+            <div class="hint">
+              系统会根据章节完成节点自动决定推送时机和内容结构，老师只需要控制是否启用。
+            </div>
+          </section>
+
+          <section class="config-card">
+            <div class="config-head">
+              <div>
+                <h4>期中期末复习作业</h4>
+                <p>临近期中、期末考试时自动创建复习作业，帮助学生在关键节点集中巩固。</p>
+              </div>
+              <button class="switch" id="examSwitch" aria-label="启用期中期末复习作业"></button>
+            </div>
+            <div class="hint">
+              系统会结合考试周期和近期学习进度自动生成合适内容，不需要额外配置具体细节。
+            </div>
+          </section>
+        </div>
+
+        <div class="drawer-foot">
+          <div class="preview" id="summaryText">
+            <span>当前将自动创建：每日课后作业、章节复习作业</span>
+            <span>每日课后作业：20题，错题优先，下课前10分钟后生成</span>
+          </div>
+          <div class="foot-actions">
+            <button class="reset-btn" id="resetDefault">恢复默认</button>
+            <button class="save-btn" id="saveConfig">保存设置</button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="toast" id="toast">保存成功</div>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      var defaultState = {
+        dailyEnabled: true,
+        dailyTiming: '下课前10分钟后',
+        dailyCount: 20,
+        wrongFirst: true,
+        compilationAgree: true,
+        chapterEnabled: true,
+        examEnabled: false
+      };
+
+      var state = JSON.parse(JSON.stringify(defaultState));
+
+      var openDrawerBtn = document.getElementById('openDrawer');
+      var closeDrawerBtn = document.getElementById('closeDrawer');
+      var drawer = document.getElementById('drawer');
+      var mask = document.getElementById('drawerMask');
+      var toast = document.getElementById('toast');
+      var dailyFields = document.getElementById('dailyFields');
+
+      function openDrawer() {
+        drawer.classList.add('show');
+        mask.classList.add('show');
+      }
+
+      function closeDrawer() {
+        drawer.classList.remove('show');
+        mask.classList.remove('show');
+      }
+
+      function showToast(text) {
+        toast.textContent = text;
+        toast.classList.add('show');
+        window.clearTimeout(showToast.timer);
+        showToast.timer = window.setTimeout(function () {
+          toast.classList.remove('show');
+        }, 1800);
+      }
+
+      function bindStateToView() {
+        document.getElementById('dailySwitch').classList.toggle('active', state.dailyEnabled);
+        document.getElementById('chapterSwitch').classList.toggle('active', state.chapterEnabled);
+        document.getElementById('examSwitch').classList.toggle('active', state.examEnabled);
+        dailyFields.classList.toggle('disabled-block', !state.dailyEnabled);
+
+        document.getElementById('dailyTiming').value = state.dailyTiming;
+        document.getElementById('dailyCount').value = state.dailyCount;
+        document.getElementById('wrongFirst').checked = state.wrongFirst;
+        document.getElementById('compilationAgree').checked = state.compilationAgree;
+
+        var summaryParts = [];
+        if (state.dailyEnabled) summaryParts.push('每日课后作业');
+        if (state.chapterEnabled) summaryParts.push('章节复习作业');
+        if (state.examEnabled) summaryParts.push('期中期末复习作业');
+
+        document.getElementById('summaryText').innerHTML =
+          '<span>当前将自动创建：' + (summaryParts.length ? summaryParts.join('、') : '暂无自动作业') + '</span>' +
+          '<span>' + (state.dailyEnabled
+            ? '每日课后作业：' + state.dailyCount + '题，' + (state.wrongFirst ? '错题优先，' : '普通抽题，') + state.dailyTiming + '生成'
+            : '每日课后作业当前未启用') + '</span>';
+      }
+
+      function resetDefault() {
+        state = JSON.parse(JSON.stringify(defaultState));
+        bindStateToView();
+        showToast('已恢复默认设置');
+      }
+
+      document.getElementById('dailySwitch').addEventListener('click', function () {
+        state.dailyEnabled = !state.dailyEnabled;
+        bindStateToView();
+      });
+      document.getElementById('chapterSwitch').addEventListener('click', function () {
+        state.chapterEnabled = !state.chapterEnabled;
+        bindStateToView();
+      });
+      document.getElementById('examSwitch').addEventListener('click', function () {
+        state.examEnabled = !state.examEnabled;
+        bindStateToView();
+      });
+
+      document.getElementById('dailyTiming').addEventListener('change', function (event) {
+        state.dailyTiming = event.target.value;
+        bindStateToView();
+      });
+      document.getElementById('dailyCount').addEventListener('change', function (event) {
+        var value = Number(event.target.value || 20);
+        if (value < 10) value = 10;
+        if (value > 30) value = 30;
+        state.dailyCount = value;
+        bindStateToView();
+      });
+      document.getElementById('wrongFirst').addEventListener('change', function (event) {
+        state.wrongFirst = event.target.checked;
+        bindStateToView();
+      });
+      document.getElementById('compilationAgree').addEventListener('change', function (event) {
+        state.compilationAgree = event.target.checked;
+        bindStateToView();
+      });
+
+      openDrawerBtn.addEventListener('click', openDrawer);
+      closeDrawerBtn.addEventListener('click', closeDrawer);
+      mask.addEventListener('click', closeDrawer);
+
+      document.getElementById('resetDefault').addEventListener('click', resetDefault);
+      document.getElementById('saveConfig').addEventListener('click', function () {
+        bindStateToView();
+        showToast('保存成功');
+      });
+
+      bindStateToView();
+    }());
+  </script>
+</body>
+</html>

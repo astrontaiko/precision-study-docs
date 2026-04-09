@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>后台策略配置平台原型</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --header: #f1f3f7;
+      --line: #e4e9f2;
+      --text: #24324a;
+      --muted: #7f8ca3;
+      --primary: #3f6dff;
+      --primary-soft: #edf2ff;
+      --success: #27c345;
+      --danger: #3268ff;
+      --shadow: 0 10px 24px rgba(62, 92, 160, 0.08);
+      --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      padding: 10px;
+    }
+
+    .page {
+      background: var(--panel);
+      border-radius: 0;
+      min-height: calc(100vh - 20px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .toolbar {
+      padding: 14px 20px 10px;
+      display: grid;
+      grid-template-columns: repeat(4, 200px) 1fr auto;
+      gap: 14px;
+      align-items: center;
+      background: #fff;
+    }
+
+    .select,
+    .input {
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid #d9e0ee;
+      padding: 0 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    .select:focus,
+    .input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(63, 109, 255, 0.08);
+    }
+
+    .add-btn,
+    .save-btn,
+    .cancel-btn,
+    .ghost-btn {
+      border-radius: 8px;
+      border: 1px solid transparent;
+      height: 34px;
+      padding: 0 18px;
+      cursor: pointer;
+    }
+
+    .add-btn,
+    .save-btn {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .cancel-btn,
+    .ghost-btn {
+      background: #fff;
+      border-color: #d9e0ee;
+      color: #4a5a77;
+    }
+
+    .table-wrap {
+      padding: 0 20px 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead tr {
+      background: var(--header);
+    }
+
+    th, td {
+      text-align: left;
+      padding: 14px 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+    }
+
+    th {
+      font-weight: 700;
+      color: #3c4d6b;
+    }
+
+    td.action-cell a {
+      color: var(--danger);
+      text-decoration: none;
+      margin-right: 18px;
+      cursor: pointer;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 0 0;
+    }
+
+    .page-btn,
+    .page-size {
+      min-width: 32px;
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid #d9e0ee;
+      background: #fff;
+      color: #4c5d7a;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .page-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .editor {
+      display: none;
+      padding: 20px 22px 28px;
+    }
+
+    .editor.active,
+    .list-page.active {
+      display: block;
+    }
+
+    .editor-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .section {
+      margin-bottom: 16px;
+    }
+
+    .section-bar {
+      background: #cdcdcd;
+      color: #222;
+      font-weight: 700;
+      padding: 8px 10px;
+      margin-bottom: 14px;
+    }
+
+    .basic-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px 36px;
+      padding: 0 10px 14px;
+      border-bottom: 1px solid #cfd5df;
+    }
+
+    .meta-item {
+      display: flex;
+      gap: 8px;
+      min-height: 28px;
+      align-items: center;
+    }
+
+    .meta-item span {
+      color: #222;
+      white-space: nowrap;
+    }
+
+    .meta-item strong {
+      color: #555;
+      font-weight: 500;
+    }
+
+    .tab-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0 12px;
+    }
+
+    .green-tab {
+      background: var(--success);
+      color: #fff;
+      border: none;
+      border-radius: 0;
+      padding: 10px 28px;
+      cursor: pointer;
+    }
+
+    .inline-btn {
+      background: #fff;
+      border: 1px solid #d9e0ee;
+      color: #3268ff;
+      border-radius: 8px;
+      height: 36px;
+      padding: 0 18px;
+      cursor: pointer;
+    }
+
+    .chapter-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 10px 12px;
+    }
+
+    .chapter-row label,
+    .field label {
+      color: #333;
+      white-space: nowrap;
+    }
+
+    .required {
+      color: #ff4d4f;
+    }
+
+    .chapter-picker {
+      width: 260px;
+    }
+
+    .rules {
+      padding: 0 10px;
+    }
+
+    .rule-card {
+      padding: 18px 0 20px;
+      border-bottom: 1px solid #cfd5df;
+      display: grid;
+      grid-template-columns: 1fr 76px;
+      gap: 18px;
+    }
+
+    .rule-main {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 18px 22px;
+      align-items: start;
+    }
+
+    .field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .tag-box {
+      min-height: 36px;
+      border: 1px solid #d9e0ee;
+      border-radius: 8px;
+      padding: 5px 8px;
+      background: #fff;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .tag {
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: #f3f5f9;
+      border: 1px solid #d9e0ee;
+      font-size: 12px;
+      color: #555;
+    }
+
+    .hint {
+      color: #999;
+      font-size: 12px;
+      line-height: 1.6;
+      margin-top: 6px;
+      padding-left: 92px;
+    }
+
+    .rule-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-end;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .link-btn {
+      color: #3268ff;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+
+    .add-rule {
+      padding: 14px 0 8px 26px;
+      color: #3268ff;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      padding-top: 22px;
+    }
+
+    @media (max-width: 1400px) {
+      .toolbar {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+      }
+
+      .rule-main {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="page">
+      <section class="list-page active" id="listPage">
+        <div class="toolbar">
+          <select class="select" id="filterSubject">
+            <option value="">学科</option>
+            <option value="高中数学">高中数学</option>
+            <option value="初中数学">初中数学</option>
+            <option value="语文">语文</option>
+          </select>
+          <select class="select" id="filterVersion">
+            <option value="">版本教材</option>
+            <option value="人教版A版">人教版A版</option>
+            <option value="人教版B版">人教版B版</option>
+          </select>
+          <select class="select" id="filterStudent">
+            <option value="">适用学生</option>
+            <option value="S">S</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+          </select>
+          <select class="select" id="filterScene">
+            <option value="">学习场景</option>
+            <option value="预习">预习</option>
+            <option value="提升">提升</option>
+            <option value="期中">期中</option>
+            <option value="期末">期末</option>
+          </select>
+          <div></div>
+          <button class="add-btn" id="addStrategy">＋ 添加</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>策略名称</th>
+                <th>学科</th>
+                <th>教材版本</th>
+                <th>适用学生</th>
+                <th>学习场景</th>
+                <th>子策略数量</th>
+                <th>使用次数</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="strategyTable"></tbody>
+          </table>
+
+          <div class="pagination">
+            <span class="page-btn">←</span>
+            <span class="page-btn active">1</span>
+            <span class="page-btn">2</span>
+            <span class="page-btn">3</span>
+            <span class="page-btn">4</span>
+            <span class="page-btn">5</span>
+            <span class="page-btn">…</span>
+            <span class="page-btn">70</span>
+            <span class="page-btn">→</span>
+            <span class="page-size">10 条/页</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="editor" id="editorPage">
+        <div class="editor-title" id="editorTitle">高中数学-人教版A版-S类-预习配课策略</div>
+
+        <div class="section">
+          <div class="section-bar">基础信息</div>
+          <div class="basic-grid">
+            <div class="meta-item"><span>学科：</span><strong id="metaSubject">高中数学</strong></div>
+            <div class="meta-item"><span>教材版本：</span><strong id="metaVersion">人教版A版</strong></div>
+            <div class="meta-item"><span>适用学生：</span><strong id="metaStudent">S</strong></div>
+            <div class="meta-item"><span>适用场景：</span><strong id="metaScene">预习</strong></div>
+            <div class="meta-item"><span>适用地区：</span><strong>全国</strong></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="tab-row">
+            <button class="green-tab">章节策略 1</button>
+            <button class="inline-btn">新增</button>
+          </div>
+          <div class="chapter-row">
+            <label><span class="required">*</span> 适用章节</label>
+            <select class="select chapter-picker" id="chapterPicker">
+              <option>已选所有年级册章节</option>
+              <option>高一上-集合与函数</option>
+              <option>高一上-三角函数</option>
+              <option>高一下-数列与不等式</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-bar">必学内容规则定义</div>
+          <div class="rules" id="requiredRules"></div>
+          <div class="add-rule" data-target="required">新增规则</div>
+        </div>
+
+        <div class="section">
+          <div class="section-bar">选学内容规则定义</div>
+          <div class="rules" id="optionalRules"></div>
+          <div class="add-rule" data-target="optional">新增规则</div>
+        </div>
+
+        <div class="footer">
+          <button class="cancel-btn" id="backToList">取消</button>
+          <button class="save-btn" id="saveStrategy">保存</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var strategies = [
+        { name: "高中数学-人教版A版-S类-预习配课策略", subject: "高中数学", version: "人教版A版", student: "S", scene: "预习", count: 1, used: 37 },
+        { name: "高中数学-人教版A版-S类-提升配课策略", subject: "高中数学", version: "人教版A版", student: "S", scene: "提升", count: 1, used: 27 },
+        { name: "高中数学-人教版A版-S类-期中配课策略", subject: "高中数学", version: "人教版A版", student: "S", scene: "期中", count: 1, used: 1 },
+        { name: "高中数学-人教版A版-S类-期末配课策略", subject: "高中数学", version: "人教版A版", student: "S", scene: "期末", count: 0, used: 0 },
+        { name: "高中数学-人教版A版-A类-预习配课策略", subject: "高中数学", version: "人教版A版", student: "A", scene: "预习", count: 1, used: 19 },
+        { name: "高中数学-人教版A版-A类-提升配课策略", subject: "高中数学", version: "人教版A版", student: "A", scene: "提升", count: 1, used: 6 },
+        { name: "高中数学-人教版A版-A类-期中配课策略", subject: "高中数学", version: "人教版A版", student: "A", scene: "期中", count: 1, used: 2 },
+        { name: "高中数学-人教版A版-A类-期末配课策略", subject: "高中数学", version: "人教版A版", student: "A", scene: "期末", count: 0, used: 0 },
+        { name: "高中数学-人教版A版-B类-预习配课策略", subject: "高中数学", version: "人教版A版", student: "B", scene: "预习", count: 1, used: 12 },
+        { name: "高中数学-人教版A版-B类-提升配课策略", subject: "高中数学", version: "人教版A版", student: "B", scene: "提升", count: 1, used: 5 }
+      ];
+
+      var state = {
+        currentStrategy: strategies[0],
+        requiredRules: [
+          { id: 1, questionType: "学", difficulty: ["基础"], examType: "请选择", examRate: "请选择", importance: ["中", "高", "低"], learned: "不区分", passMode: "学", planType: "新知学" },
+          { id: 2, questionType: "学", difficulty: ["进阶"], examType: "请选择", examRate: "请选择", importance: ["中", "高"], learned: "不区分", passMode: "学", planType: "新知学" }
+        ],
+        optionalRules: []
+      };
+
+      var listPage = document.getElementById("listPage");
+      var editorPage = document.getElementById("editorPage");
+      var strategyTable = document.getElementById("strategyTable");
+
+      function renderTable() {
+        var subject = document.getElementById("filterSubject").value;
+        var version = document.getElementById("filterVersion").value;
+        var student = document.getElementById("filterStudent").value;
+        var scene = document.getElementById("filterScene").value;
+
+        var rows = strategies.filter(function (item) {
+          return (!subject || item.subject === subject) &&
+            (!version || item.version === version) &&
+            (!student || item.student === student) &&
+            (!scene || item.scene === scene);
+        });
+
+        strategyTable.innerHTML = rows.map(function (item, index) {
+          return '<tr>' +
+            '<td>' + item.name + '</td>' +
+            '<td>' + item.subject + '</td>' +
+            '<td>' + item.version + '</td>' +
+            '<td>' + item.student + '</td>' +
+            '<td>' + item.scene + '</td>' +
+            '<td>' + item.count + '</td>' +
+            '<td>' + item.used + '</td>' +
+            '<td class="action-cell">' +
+            '<a data-action="edit" data-index="' + index + '">编辑</a>' +
+            '<a data-action="copy" data-index="' + index + '">复制</a>' +
+            '</td>' +
+            '</tr>';
+        }).join("");
+      }
+
+      function renderRule(rule, group, index) {
+        return '<div class="rule-card" data-group="' + group + '" data-index="' + index + '">' +
+          '<div>' +
+          '<div class="rule-main">' +
+          '<div>' +
+          '<div class="field"><label><span class="required">*</span> 题模类型：</label><select class="select" data-field="questionType"><option' + (rule.questionType === "学" ? " selected" : "") + '>学</option><option' + (rule.questionType === "练" ? " selected" : "") + '>练</option><option' + (rule.questionType === "试" ? " selected" : "") + '>试</option></select></div>' +
+          '</div>' +
+          '<div>' +
+          '<div class="field"><label><span class="required">*</span> 认知难度：</label><div class="tag-box">' + rule.difficulty.map(function (tag) { return '<span class="tag">' + tag + '</span>'; }).join("") + '</div></div>' +
+          '</div>' +
+          '<div>' +
+          '<div class="field"><label>考频类型：</label><select class="select" data-field="examType"><option>请选择</option><option' + (rule.examType === "章节" ? " selected" : "") + '>章节</option><option' + (rule.examType === "期中" ? " selected" : "") + '>期中</option><option' + (rule.examType === "期末" ? " selected" : "") + '>期末</option></select></div>' +
+          '</div>' +
+          '<div>' +
+          '<div class="field"><label>考频：</label><select class="select" data-field="examRate"><option>请选择</option><option' + (rule.examRate === "高" ? " selected" : "") + '>高</option><option' + (rule.examRate === "中" ? " selected" : "") + '>中</option><option' + (rule.examRate === "低" ? " selected" : "") + '>低</option></select></div>' +
+          '</div>' +
+          '<div>' +
+          '<div class="field"><label>重要度：</label><div class="tag-box">' + rule.importance.map(function (tag) { return '<span class="tag">' + tag + '</span>'; }).join("") + '</div></div>' +
+          '<div class="hint">重要度区分地区，策略匹配时按地区自动选择</div>' +
+          '</div>' +
+          '<div>' +
+          '<div class="field"><label><span class="required">*</span> 是否已学：</label><select class="select" data-field="learned"><option' + (rule.learned === "不区分" ? " selected" : "") + '>不区分</option><option' + (rule.learned === "已学" ? " selected" : "") + '>已学</option><option' + (rule.learned === "未学" ? " selected" : "") + '>未学</option></select></div>' +
+          '</div>' +
+          '<div>' +
+          '<div class="field"><label><span class="required">*</span> 通关方式：</label><select class="select" data-field="passMode"><option' + (rule.passMode === "学" ? " selected" : "") + '>学</option><option' + (rule.passMode === "测已学" ? " selected" : "") + '>测已学</option><option' + (rule.passMode === "测前序" ? " selected" : "") + '>测前序</option><option' + (rule.passMode === "先测后补" ? " selected" : "") + '>先测后补</option></select></div>' +
+          '</div>' +
+          '<div>' +
+          '<div class="field"><label><span class="required">*</span> 学习方案类型：</label><select class="select" data-field="planType"><option' + (rule.planType === "新知学" ? " selected" : "") + '>新知学</option><option' + (rule.planType === "巩固学" ? " selected" : "") + '>巩固学</option><option' + (rule.planType === "复习学" ? " selected" : "") + '>复习学</option></select></div>' +
+          '<div class="hint">地图优先选择地区学习方案，若无地区方案时，选择通用学习方案</div>' +
+          '</div>' +
+          '</div>' +
+          '</div>' +
+          '<div class="rule-actions">' +
+          '<button class="link-btn" data-op="delete">删除</button>' +
+          '<button class="link-btn" data-op="copy">复制</button>' +
+          '<button class="link-btn" data-op="up">上移</button>' +
+          '<button class="link-btn" data-op="down">下移</button>' +
+          '</div>' +
+          '</div>';
+      }
+
+      function renderEditor() {
+        document.getElementById("editorTitle").textContent = state.currentStrategy.name;
+        document.getElementById("metaSubject").textContent = state.currentStrategy.subject;
+        document.getElementById("metaVersion").textContent = state.currentStrategy.version;
+        document.getElementById("metaStudent").textContent = state.currentStrategy.student;
+        document.getElementById("metaScene").textContent = state.currentStrategy.scene;
+
+        document.getElementById("requiredRules").innerHTML = state.requiredRules.map(function (rule, index) {
+          return renderRule(rule, "required", index);
+        }).join("");
+
+        document.getElementById("optionalRules").innerHTML = state.optionalRules.length
+          ? state.optionalRules.map(function (rule, index) { return renderRule(rule, "optional", index); }).join("")
+          : "";
+      }
+
+      function openEditor(strategy) {
+        state.currentStrategy = strategy;
+        listPage.classList.remove("active");
+        editorPage.classList.add("active");
+        renderEditor();
+      }
+
+      function backToList() {
+        editorPage.classList.remove("active");
+        listPage.classList.add("active");
+        renderTable();
+      }
+
+      function createEmptyRule(id) {
+        return { id: id, questionType: "学", difficulty: ["基础"], examType: "请选择", examRate: "请选择", importance: ["高"], learned: "不区分", passMode: "学", planType: "新知学" };
+      }
+
+      document.addEventListener("click", function (event) {
+        var action = event.target.getAttribute("data-action");
+        var index = event.target.getAttribute("data-index");
+        if (action === "edit") {
+          openEditor(strategies[Number(index)]);
+        }
+        if (action === "copy") {
+          var copied = JSON.parse(JSON.stringify(strategies[Number(index)]));
+          copied.name = copied.name + "-副本";
+          strategies.unshift(copied);
+          renderTable();
+        }
+
+        if (event.target.id === "addStrategy") {
+          state.currentStrategy = {
+            name: "新建配课策略",
+            subject: document.getElementById("filterSubject").value || "高中数学",
+            version: document.getElementById("filterVersion").value || "人教版A版",
+            student: document.getElementById("filterStudent").value || "S",
+            scene: document.getElementById("filterScene").value || "预习"
+          };
+          state.requiredRules = [createEmptyRule(Date.now())];
+          state.optionalRules = [];
+          openEditor(state.currentStrategy);
+        }
+
+        if (event.target.id === "backToList" || event.target.id === "saveStrategy") {
+          if (event.target.id === "saveStrategy" && !strategies.some(function (item) { return item.name === state.currentStrategy.name; })) {
+            strategies.unshift({
+              name: state.currentStrategy.name,
+              subject: state.currentStrategy.subject,
+              version: state.currentStrategy.version,
+              student: state.currentStrategy.student,
+              scene: state.currentStrategy.scene,
+              count: state.requiredRules.length + state.optionalRules.length,
+              used: 0
+            });
+          }
+          backToList();
+        }
+
+        if (event.target.classList.contains("add-rule")) {
+          var target = event.target.getAttribute("data-target");
+          if (target === "required") state.requiredRules.push(createEmptyRule(Date.now()));
+          if (target === "optional") state.optionalRules.push(createEmptyRule(Date.now()));
+          renderEditor();
+        }
+
+        if (event.target.classList.contains("link-btn")) {
+          var card = event.target.closest(".rule-card");
+          var group = card.getAttribute("data-group");
+          var ruleIndex = Number(card.getAttribute("data-index"));
+          var list = group === "required" ? state.requiredRules : state.optionalRules;
+          var op = event.target.getAttribute("data-op");
+
+          if (op === "delete") list.splice(ruleIndex, 1);
+          if (op === "copy") list.splice(ruleIndex + 1, 0, JSON.parse(JSON.stringify(list[ruleIndex])));
+          if (op === "up" && ruleIndex > 0) {
+            var tempUp = list[ruleIndex - 1];
+            list[ruleIndex - 1] = list[ruleIndex];
+            list[ruleIndex] = tempUp;
+          }
+          if (op === "down" && ruleIndex < list.length - 1) {
+            var tempDown = list[ruleIndex + 1];
+            list[ruleIndex + 1] = list[ruleIndex];
+            list[ruleIndex] = tempDown;
+          }
+          renderEditor();
+        }
+      });
+
+      ["filterSubject", "filterVersion", "filterStudent", "filterScene"].forEach(function (id) {
+        document.getElementById(id).addEventListener("change", renderTable);
+      });
+
+      renderTable();
+    }());
+  </script>
+</body>
+</html>

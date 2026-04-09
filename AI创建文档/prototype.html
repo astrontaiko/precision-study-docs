@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>精准学规划原型</title>
+  <style>
+    :root {
+      --bg1: #eef4ff;
+      --bg2: #f9fbff;
+      --panel: #ffffff;
+      --soft: #eef5ff;
+      --soft-blue: #e9f2ff;
+      --line: #dbe7fb;
+      --text: #1f2b45;
+      --muted: #7d8ba6;
+      --primary: #3f6dff;
+      --primary-soft: #eaf0ff;
+      --shadow: 0 18px 40px rgba(55, 92, 186, 0.12);
+      --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(circle at left top, rgba(123, 161, 255, 0.14), transparent 26%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+    }
+
+    .sidebar {
+      padding: 18px 14px;
+      background: linear-gradient(180deg, rgba(247, 250, 255, 0.98), rgba(241, 246, 255, 0.98));
+      border-right: 1px solid rgba(219, 231, 251, 0.95);
+    }
+
+    .back {
+      font-size: 14px;
+      color: #334a73;
+      margin-bottom: 18px;
+    }
+
+    .student-pill {
+      padding: 14px 18px;
+      border-radius: 16px;
+      background: #dfeafc;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .lesson-list {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: calc(100vh - 180px);
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .lesson-item {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .lesson-item.active,
+    .lesson-item:hover {
+      border-color: var(--primary);
+      box-shadow: 0 10px 24px rgba(63, 109, 255, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .lesson-item strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .lesson-item span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .main {
+      padding: 18px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 18px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      background: linear-gradient(135deg, #fff4d8, #ffd7be);
+      box-shadow: 0 10px 24px rgba(255, 177, 125, 0.24);
+    }
+
+    .profile h1 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+
+    .badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 6px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(63, 109, 255, 0.1);
+      background: var(--soft);
+      font-size: 12px;
+      color: #41547a;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 28px;
+      color: #5a6d8f;
+      font-size: 15px;
+    }
+
+    .tabs span {
+      padding: 10px 0;
+      position: relative;
+    }
+
+    .tabs .active {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .tabs .active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -2px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--primary);
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .monitor,
+    .action-btn,
+    .small-btn {
+      height: 46px;
+      padding: 0 16px;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      background: var(--panel);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .monitor {
+      min-width: 164px;
+      justify-content: space-between;
+    }
+
+    .chip {
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #f8faff;
+      font-size: 12px;
+    }
+
+    .action-btn {
+      height: 40px;
+      border-color: var(--line);
+      background: linear-gradient(135deg, #f8fbff, #edf3ff);
+      box-shadow: none;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(780px, 1fr) 320px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .map-shell {
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(219, 231, 251, 0.9);
+      border-radius: 26px;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .map-header {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      border-bottom: 1px solid rgba(219, 231, 251, 0.9);
+      background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(249,251,255,0.96));
+    }
+
+    .course-panel {
+      padding: 16px;
+      border-right: 1px solid rgba(219, 231, 251, 0.9);
+    }
+
+    .course-panel h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .course-meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .levels {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      text-align: center;
+      align-items: center;
+      color: #7d8ba6;
+      font-weight: 600;
+    }
+
+    .map-body {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      max-height: calc(100vh - 210px);
+      overflow: auto;
+    }
+
+    .steps {
+      padding: 16px;
+      border-right: 1px solid rgba(219, 231, 251, 0.9);
+      background: linear-gradient(180deg, rgba(252,253,255,0.96), rgba(245,249,255,0.96));
+    }
+
+    .step-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .step-card.active {
+      border-color: var(--primary);
+      box-shadow: 0 10px 24px rgba(63, 109, 255, 0.12);
+    }
+
+    .step-card strong {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .step-card span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .map-content {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .unit-row {
+      display: grid;
+      grid-template-columns: 170px 1fr;
+      gap: 12px;
+    }
+
+    .unit-label,
+    .unit-box {
+      background: var(--soft-blue);
+      border-radius: 18px;
+    }
+
+    .unit-label {
+      padding: 18px;
+    }
+
+    .unit-label h4 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .mini-tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 10px;
+      background: #dbe8ff;
+      color: var(--primary);
+      font-size: 12px;
+    }
+
+    .unit-box {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      min-height: 118px;
+    }
+
+    .task {
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(219, 231, 251, 0.96);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .task-top {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .task-title {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .task-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .task-tag {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #f2f6fd;
+      color: #4d638b;
+      font-size: 12px;
+    }
+
+    .task-tag.required {
+      background: #edf3ff;
+      color: var(--primary);
+    }
+
+    .task-tag.optional {
+      background: #fbf5ea;
+      color: #9a6e24;
+    }
+
+    .side-column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .side-card {
+      background: rgba(255,255,255,0.84);
+      border: 1px solid rgba(219, 231, 251, 0.92);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .side-card h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      background: var(--soft);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .metric span {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric strong {
+      font-size: 18px;
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .stack-item {
+      background: #f8fbff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+
+    .stack-item strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .stack-item span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .small-btn {
+      height: 42px;
+      border-color: var(--line);
+      box-shadow: none;
+      background: rgba(255,255,255,0.8);
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(28, 42, 76, 0.22);
+      padding: 24px;
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .modal {
+      width: min(1080px, 100%);
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      border-radius: 30px;
+      padding: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,251,255,0.98));
+      box-shadow: 0 32px 80px rgba(48, 78, 152, 0.22);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .modal-header h2 {
+      margin: 0 0 6px;
+      font-size: 28px;
+    }
+
+    .modal-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .close-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .modal-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 18px;
+    }
+
+    .form-card,
+    .preview-card {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(219, 231, 251, 0.92);
+      border-radius: 24px;
+      padding: 20px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+    }
+
+    .section-head h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .section-head span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .field { margin-bottom: 14px; }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #4c6189;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .input,
+    .select,
+    .textarea {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #f8fbff;
+      color: var(--text);
+      outline: none;
+    }
+
+    .textarea {
+      resize: vertical;
+      min-height: 88px;
+    }
+
+    .choice-row,
+    .toggle-row,
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .choice-btn,
+    .toggle-btn,
+    .tag-btn {
+      border: 1px solid var(--line);
+      background: #f7faff;
+      color: #43577f;
+      border-radius: 14px;
+      padding: 12px 16px;
+      cursor: pointer;
+    }
+
+    .choice-btn.active,
+    .toggle-btn.active,
+    .tag-btn.active {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .question {
+      background: #f9fbff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .question strong {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .question .toggle-row { flex-wrap: nowrap; }
+
+    .question .toggle-btn {
+      flex: 1;
+      text-align: center;
+      background: #fff;
+    }
+
+    .preview-card {
+      background:
+        radial-gradient(circle at top right, rgba(63,109,255,0.12), transparent 30%),
+        linear-gradient(180deg, #f8fbff, #ffffff);
+    }
+
+    .preview-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .preview-panel {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .preview-panel h4 {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill-item {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #edf3ff;
+      color: var(--primary);
+      font-size: 12px;
+    }
+
+    .path-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: #f8fbff;
+      margin-bottom: 8px;
+    }
+
+    .path-item span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .submit {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .submit p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .submit button {
+      border: none;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #3f6dff, #5d86ff);
+      color: #fff;
+      padding: 14px 22px;
+      min-width: 140px;
+      cursor: pointer;
+      box-shadow: 0 16px 32px rgba(63, 109, 255, 0.24);
+      font-weight: 700;
+    }
+
+    @media (max-width: 1280px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 960px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .topbar,
+      .layout,
+      .map-header,
+      .map-body,
+      .modal-layout,
+      .field-grid,
+      .unit-row { grid-template-columns: 1fr; }
+      .unit-box { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="back">← 六年级</div>
+      <div class="student-pill">李大壮</div>
+      <div class="lesson-list">
+        <div class="lesson-item active"><strong>今天</strong><span>已学 4 知识点</span></div>
+        <div class="lesson-item"><strong>第2次课</strong><span>待学 1 知识点</span></div>
+        <div class="lesson-item"><strong>第3次课</strong><span>待学 4 知识点</span></div>
+        <div class="lesson-item"><strong>第4次课</strong><span>待学 5 知识点</span></div>
+        <div class="lesson-item"><strong>第5次课</strong><span>待学 2 知识点</span></div>
+        <div class="lesson-item"><strong>第6次课</strong><span>待学 5 知识点</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="profile">
+          <div class="avatar">狐</div>
+          <div>
+            <h1>李大壮</h1>
+            <div class="badges">
+              <span class="badge">初二/人教版/上册</span>
+              <span class="badge">六年级/人教版/下册</span>
+              <span class="badge">四年级/部编版/下册</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <span class="active">地图</span>
+          <span>反馈</span>
+          <span>专注度</span>
+          <span>档案</span>
+        </div>
+
+        <div class="top-actions">
+          <div class="monitor">
+            <span>监课（1/2）</span>
+            <span class="chip">金闯</span>
+          </div>
+          <button class="action-btn" id="openPlanner">+ 规划</button>
+        </div>
+      </div>
+
+      <div class="layout">
+        <section class="map-shell">
+          <div class="map-header">
+            <div class="course-panel">
+              <h3>课程 <span class="chip" id="planStatus">规划已生成</span></h3>
+              <div class="course-meta">
+                <span>每次课 2.5 小时</span>
+                <span id="planProgressText">基础知识起步</span>
+              </div>
+            </div>
+            <div class="levels">
+              <div>基础</div>
+              <div>进阶</div>
+              <div>拔高及超越</div>
+            </div>
+          </div>
+
+          <div class="map-body">
+            <div class="steps">
+              <div class="step-card active"><strong><span>今天</span><span>已学4知识点</span></strong><span>基础知识</span></div>
+              <div class="step-card"><strong><span>第2次课</span><span>待学1知识点</span></strong><span>语言运用</span></div>
+              <div class="step-card"><strong><span>第3次课</span><span>待学4知识点</span></strong><span>单元阅读</span></div>
+              <div class="step-card"><strong><span>第4次课</span><span>待学5知识点</span></strong><span>高频阅读</span></strong></div>
+              <div class="step-card"><strong><span>第5次课</span><span>待学2知识点</span></strong><span>作文技法</span></div>
+              <div class="step-card"><strong><span>第6次课</span><span>待学5知识点</span></strong><span>单元作文</span></div>
+            </div>
+
+            <div class="map-content">
+              <div class="unit-row">
+                <div class="unit-label">
+                  <h4>基础知识</h4>
+                  <span class="mini-tag">预习</span>
+                </div>
+                <div class="unit-box">
+                  <div class="task">
+                    <div class="task-top"><span>基础</span><span>新知学</span></div>
+                    <div class="task-title">4春-第一单元个性练1</div>
+                    <div class="task-tags"><span class="task-tag required">必学</span><span class="task-tag">新知学</span></div>
+                  </div>
+                  <div class="task">
+                    <div class="task-top"><span>基础</span><span>新知学</span></div>
+                    <div class="task-title">4春-第一单元个性练2</div>
+                    <div class="task-tags"><span class="task-tag required">必学</span><span class="task-tag">新知学</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="unit-row">
+                <div class="unit-label">
+                  <h4>语言运用</h4>
+                  <span class="mini-tag">预习</span>
+                </div>
+                <div class="unit-box">
+                  <div class="task">
+                    <div class="task-top"><span>基础</span><span>测学</span></div>
+                    <div class="task-title">陈述句与反问句</div>
+                    <div class="task-tags"><span class="task-tag required">必学</span><span class="task-tag">测学</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="unit-row">
+                <div class="unit-label">
+                  <h4>单元阅读</h4>
+                  <span class="mini-tag">预习</span>
+                </div>
+                <div class="unit-box">
+                  <div class="task">
+                    <div class="task-top"><span>基础</span><span>新知学</span></div>
+                    <div class="task-title">抓住关键句，体会情感1</div>
+                    <div class="task-tags"><span class="task-tag required">必学</span><span class="task-tag">新知学</span></div>
+                  </div>
+                  <div class="task">
+                    <div class="task-top"><span>基础</span><span>巩固学</span></div>
+                    <div class="task-title">抓住关键句，体会情感2</div>
+                    <div class="task-tags"><span class="task-tag required">必学</span><span class="task-tag">巩固学</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="unit-row">
+                <div class="unit-label">
+                  <h4>高频阅读</h4>
+                  <span class="mini-tag">预习</span>
+                </div>
+                <div class="unit-box">
+                  <div class="task">
+                    <div class="task-top"><span>进阶</span><span>新知学</span></div>
+                    <div class="task-title">必考题型-根据内容想象画面</div>
+                    <div class="task-tags"><span class="task-tag optional">选学</span><span class="task-tag">新知学</span></div>
+                  </div>
+                  <div class="task">
+                    <div class="task-top"><span>进阶</span><span>新知学</span></div>
+                    <div class="task-title">必考题型-给画面取名字</div>
+                    <div class="task-tags"><span class="task-tag optional">选学</span><span class="task-tag">新知学</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="unit-row">
+                <div class="unit-label">
+                  <h4>作文技法</h4>
+                  <span class="mini-tag">预习</span>
+                </div>
+                <div class="unit-box">
+                  <div class="task">
+                    <div class="task-top"><span>进阶</span><span>新知学</span></div>
+                    <div class="task-title">写作技法-景物描写1</div>
+                    <div class="task-tags"><span class="task-tag optional">选学</span><span class="task-tag">新知学</span></div>
+                  </div>
+                  <div class="task">
+                    <div class="task-top"><span>进阶</span><span>新知学</span></div>
+                    <div class="task-title">写作技法-景物描写2</div>
+                    <div class="task-tags"><span class="task-tag optional">选学</span><span class="task-tag">新知学</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="unit-row">
+                <div class="unit-label">
+                  <h4>单元作文</h4>
+                  <span class="mini-tag">预习</span>
+                </div>
+                <div class="unit-box">
+                  <div class="task">
+                    <div class="task-top"><span>拔高</span><span>应用练</span></div>
+                    <div class="task-title">【作】我的乐园</div>
+                    <div class="task-tags"><span class="task-tag required">必学</span><span class="task-tag">应用练</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side-column">
+          <div class="side-card">
+            <h3>规划概况</h3>
+            <div class="summary-grid">
+              <div class="metric"><span>目标分层</span><strong id="summaryTarget">85~94分</strong></div>
+              <div class="metric"><span>学生类型</span><strong id="summarySegment">努力的中等生</strong></div>
+              <div class="metric"><span>起点进度</span><strong id="summaryProgress">第2次课</strong></div>
+              <div class="metric"><span>规划范围</span><strong id="summaryRange">基础知识 → 单元作文</strong></div>
+            </div>
+          </div>
+
+          <div class="side-card">
+            <h3>策略建议</h3>
+            <div class="stack" id="strategyRules">
+              <div class="stack-item"><strong>策略 1</strong><span>寒暑假提前预习下学期重点基础内容，春秋季尽量走在学校前面。</span></div>
+              <div class="stack-item"><strong>策略 2</strong><span>已预习内容准确率低于 90% 时进入测学，未预习内容直接进入认知增量学习。</span></div>
+              <div class="stack-item"><strong>策略 3</strong><span>保留定期消错题、基础功练习和章节复习，形成持续提分闭环。</span></div>
+            </div>
+          </div>
+
+          <div class="side-card">
+            <h3>自动作业</h3>
+            <div class="stack" id="homeworkRules">
+              <div class="stack-item"><strong>日常作业</strong><span>每次生成 8 题，在下课前 20 分钟自动下发。</span></div>
+              <div class="stack-item"><strong>错题回流</strong><span>优先错题已开启，历史错题优先进入作业。</span></div>
+              <div class="stack-item"><strong>章节复习</strong><span>关键节点自动生成章节复习卷。</span></div>
+              <div class="stack-item"><strong>期中期末</strong><span>考试前关键节点自动生成阶段复习卷。</span></div>
+            </div>
+            <div class="card-actions">
+              <button class="small-btn">打印</button>
+              <button class="small-btn">学情</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <div class="overlay hidden" id="plannerOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2>开始规划</h2>
+          <p>结合学生成绩、能力和意愿，生成符合当前地图的个性化学习方案。</p>
+        </div>
+        <button class="close-btn" id="closePlanner">✕</button>
+      </div>
+
+      <div class="modal-layout">
+        <section class="form-card">
+          <div class="section-head">
+            <h3>学生标签确认</h3>
+            <span>主要基于导学师判断 + 系统策略</span>
+          </div>
+
+          <div class="field">
+            <label>学习目标</label>
+            <div class="choice-row" id="scoreChoices">
+              <button class="choice-btn" data-score="≥95分">≥95分</button>
+              <button class="choice-btn active" data-score="85~94分">85~94分</button>
+              <button class="choice-btn" data-score="70~84分">70~84分</button>
+              <button class="choice-btn" data-score="≤69分">≤69分</button>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="latestScore">最近一次考试成绩</label>
+              <input class="input" id="latestScore" type="number" min="0" max="100" value="86" />
+            </div>
+            <div class="field">
+              <label for="studyTrack">学习体系</label>
+              <select class="select" id="studyTrack">
+                <option value="校内同步">校内同步</option>
+                <option value="混合">混合</option>
+                <option value="独立体系">独立体系</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>学习能力判断</label>
+            <div class="question">
+              <strong>能自己总结知识重点，而不是机械记忆</strong>
+              <div class="toggle-row" data-group="ability1">
+                <button class="toggle-btn active" data-value="1">符合</button>
+                <button class="toggle-btn" data-value="0">不符合</button>
+              </div>
+            </div>
+            <div class="question">
+              <strong>学过的内容能迁移到新题目里</strong>
+              <div class="toggle-row" data-group="ability2">
+                <button class="toggle-btn" data-value="1">符合</button>
+                <button class="toggle-btn active" data-value="0">不符合</button>
+              </div>
+            </div>
+            <div class="question">
+              <strong>做题时能较快定位解题思路</strong>
+              <div class="toggle-row" data-group="ability3">
+                <button class="toggle-btn" data-value="1">符合</button>
+                <button class="toggle-btn active" data-value="0">不符合</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>学习意愿判断</label>
+            <div class="question">
+              <strong>会主动完成课后任务，不太需要催促</strong>
+              <div class="toggle-row" data-group="motivation1">
+                <button class="toggle-btn active" data-value="1">符合</button>
+                <button class="toggle-btn" data-value="0">不符合</button>
+              </div>
+            </div>
+            <div class="question">
+              <strong>遇到不会的题愿意继续尝试</strong>
+              <div class="toggle-row" data-group="motivation2">
+                <button class="toggle-btn active" data-value="1">符合</button>
+                <button class="toggle-btn" data-value="0">不符合</button>
+              </div>
+            </div>
+            <div class="question">
+              <strong>对提分或新内容有明显兴趣</strong>
+              <div class="toggle-row" data-group="motivation3">
+                <button class="toggle-btn" data-value="1">符合</button>
+                <button class="toggle-btn active" data-value="0">不符合</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="currentProgress">当前进度</label>
+              <select class="select" id="currentProgress">
+                <option>今天｜基础知识</option>
+                <option selected>第2次课｜语言运用</option>
+                <option>第3次课｜单元阅读</option>
+                <option>第4次课｜高频阅读</option>
+                <option>第5次课｜作文技法</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>学生是否已开始该地图学习</label>
+              <div class="tag-row" id="startedRow">
+                <button class="tag-btn active" data-started="yes">已开始</button>
+                <button class="tag-btn" data-started="no">未开始</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="startNode">规划起点</label>
+              <select class="select" id="startNode">
+                <option selected>基础知识</option>
+                <option>语言运用</option>
+                <option>单元阅读</option>
+                <option>高频阅读</option>
+                <option>作文技法</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="endNode">规划终点</label>
+              <select class="select" id="endNode">
+                <option>高频阅读</option>
+                <option>作文技法</option>
+                <option selected>单元作文</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="note">备注</label>
+            <textarea class="textarea" id="note" maxlength="50" placeholder="可填写校内要求、家长期望、阶段目标等"></textarea>
+          </div>
+
+          <div class="section-head">
+            <h3>课后作业自动生成</h3>
+            <span>基于“产品规划—更详细”中的自动生成逻辑</span>
+          </div>
+
+          <div class="question">
+            <strong>日常作业</strong>
+            <div class="tag-row" id="dailyHomework">
+              <button class="tag-btn active" data-homework="on">开启</button>
+              <button class="tag-btn" data-homework="off">关闭</button>
+            </div>
+            <div class="field-grid" style="margin-top: 12px;">
+              <div class="field">
+                <label for="questionCount">题目数量限制</label>
+                <select class="select" id="questionCount">
+                  <option>5题</option>
+                  <option selected>8题</option>
+                  <option>10题</option>
+                  <option>12题</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="triggerTime">生成时机</label>
+                <select class="select" id="triggerTime">
+                  <option>下课前10分钟</option>
+                  <option selected>下课前20分钟</option>
+                  <option>下课前30分钟</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="question">
+            <strong>复习与练习</strong>
+            <div class="tag-row" id="reviewOptions">
+              <button class="tag-btn active" data-key="chapterReview">章节复习开启</button>
+              <button class="tag-btn active" data-key="dailyPractice">日常练习推荐</button>
+              <button class="tag-btn active" data-key="examPractice">期中期末练习开启</button>
+              <button class="tag-btn active" data-key="prioritizeWrong">优先错题</button>
+            </div>
+          </div>
+
+          <div class="submit">
+            <p id="submitNote">系统将根据当前选择，自动生成校内同步的提分型规划。</p>
+            <button id="createPlan">新建规划</button>
+          </div>
+        </section>
+
+        <aside class="preview-card">
+          <div class="section-head">
+            <h3>规划预览</h3>
+            <span>实时生成</span>
+          </div>
+
+          <div class="preview-list">
+            <div class="preview-panel">
+              <h4>学生画像</h4>
+              <div class="pill-list" id="portraitTags">
+                <span class="pill-item">85~94分</span>
+                <span class="pill-item">最近成绩 86 分</span>
+                <span class="pill-item">能力中</span>
+                <span class="pill-item">意愿中</span>
+                <span class="pill-item">校内同步</span>
+                <span class="pill-item">已开始地图学习</span>
+              </div>
+            </div>
+
+            <div class="preview-panel">
+              <h4>推荐策略</h4>
+              <div class="pill-list" id="planTags">
+                <span class="pill-item">努力的中等生</span>
+                <span class="pill-item">认知增量优先</span>
+                <span class="pill-item">支持预览后创建</span>
+                <span class="pill-item">自动作业已开启</span>
+              </div>
+            </div>
+
+            <div class="preview-panel" id="previewPath">
+              <h4>学习路径</h4>
+              <div class="path-item"><strong>当前进度</strong><span>第2次课｜语言运用</span></div>
+              <div class="path-item"><strong>规划范围</strong><span>基础知识 → 单元作文</span></div>
+              <div class="path-item"><strong>学习方式</strong><span>新知学 + 测学 + 阶段复习</span></div>
+              <div class="path-item"><strong>方案重点</strong><span>优先预习重点基础内容，春秋季尽量走在学校前面。</span></div>
+            </div>
+
+            <div class="preview-panel" id="previewHomework">
+              <h4>作业策略</h4>
+              <div class="path-item"><strong>规则 1</strong><span>日常作业已开启，每次生成 8 题。</span></div>
+              <div class="path-item"><strong>规则 2</strong><span>优先错题已开启，历史错题优先回流。</span></div>
+              <div class="path-item"><strong>规则 3</strong><span>章节复习与期中期末练习自动生成。</span></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var state = {
+        scoreTarget: "85~94分",
+        latestScore: 86,
+        studyTrack: "校内同步",
+        currentProgress: "第2次课｜语言运用",
+        startNode: "基础知识",
+        endNode: "单元作文",
+        started: "yes",
+        dailyHomework: "on",
+        questionCount: "8题",
+        triggerTime: "下课前20分钟",
+        chapterReview: true,
+        dailyPractice: true,
+        examPractice: true,
+        prioritizeWrong: true,
+        ability: [1, 0, 0],
+        motivation: [1, 1, 0]
+      };
+
+      var overlay = document.getElementById("plannerOverlay");
+      var openPlanner = document.getElementById("openPlanner");
+      var closePlanner = document.getElementById("closePlanner");
+      var createPlan = document.getElementById("createPlan");
+
+      function setSingleActive(container, target, selector) {
+        var nodes = container.querySelectorAll(selector);
+        for (var i = 0; i < nodes.length; i += 1) {
+          nodes[i].classList.toggle("active", nodes[i] === target);
+        }
+      }
+
+      function levelFrom(values, high, low) {
+        var sum = values.reduce(function (a, b) { return a + b; }, 0);
+        if (sum === values.length) return high;
+        if (sum === 0) return low;
+        return high.replace("高", "中");
+      }
+
+      function segmentLabel() {
+        var ability = levelFrom(state.ability, "能力高", "能力低");
+        var motivation = levelFrom(state.motivation, "意愿高", "意愿低");
+        var score = state.latestScore;
+
+        if (score >= 95 && ability === "能力高" && motivation === "意愿高") return "优等生/优潜生";
+        if (score <= 69) return "后进生";
+        if (score >= 70 && score <= 94 && ability !== "能力高" && motivation === "意愿高") return "努力的中等生";
+        if (score >= 70 && score <= 94 && ability === "能力高" && motivation !== "意愿高") return "意愿不足的中等生";
+        if (score >= 70 && score <= 94 && ability !== "能力高" && motivation !== "意愿高") return "薄弱的中等生";
+        return "混合型优生";
+      }
+
+      function strategyText() {
+        var segment = segmentLabel();
+        if (segment === "后进生") {
+          return [
+            "优先补前序与基础内容，校内已考内容可跳过检测直接学。",
+            "对已学内容采用重点测学，低于 80% 的题模重新巩固。",
+            "强化错题回流和基础训练，优先建立短期正反馈。"
+          ];
+        }
+        if (segment === "意愿不足的中等生") {
+          return [
+            "优先安排能快速见到成绩变化的内容，先建立正反馈。",
+            "基础与进阶内容并行，但降低一次性练习强度。",
+            "通过成绩变化带动学习意愿提升。"
+          ];
+        }
+        return [
+          "寒暑假提前预习下学期重点基础内容，春秋季尽量走在学校前面。",
+          "已预习内容准确率低于 90% 时进入测学，未预习内容直接进入认知增量学习。",
+          "保留定期消错题、基础功练习和章节复习，形成持续提分闭环。"
+        ];
+      }
+
+      function homeworkText() {
+        return [
+          state.dailyHomework === "on"
+            ? "每次生成 " + state.questionCount + "，在" + state.triggerTime + "自动下发。"
+            : "日常作业关闭，由导学师手动布置。",
+          state.prioritizeWrong ? "优先错题已开启，历史错题优先进入作业。" : "优先错题关闭。",
+          state.chapterReview ? "关键节点自动生成章节复习卷。" : "章节复习关闭。",
+          state.examPractice ? "考试前关键节点自动生成阶段复习卷。" : "期中期末练习关闭。"
+        ];
+      }
+
+      function renderPreview() {
+        var portraitTags = document.getElementById("portraitTags");
+        var planTags = document.getElementById("planTags");
+        var previewPath = document.getElementById("previewPath");
+        var previewHomework = document.getElementById("previewHomework");
+
+        var ability = levelFrom(state.ability, "能力高", "能力低");
+        var motivation = levelFrom(state.motivation, "意愿高", "意愿低");
+        var portrait = [
+          state.scoreTarget,
+          "最近成绩 " + state.latestScore + " 分",
+          ability,
+          motivation,
+          state.studyTrack,
+          state.started === "yes" ? "已开始地图学习" : "未开始地图学习"
+        ];
+
+        portraitTags.innerHTML = portrait.map(function (item) {
+          return '<span class="pill-item">' + item + '</span>';
+        }).join("");
+
+        var plans = [
+          segmentLabel(),
+          state.studyTrack === "校内同步" ? "认知增量优先" : "体系混合编排",
+          "支持预览后创建",
+          state.dailyHomework === "on" ? "自动作业已开启" : "自动作业关闭"
+        ];
+
+        planTags.innerHTML = plans.map(function (item) {
+          return '<span class="pill-item">' + item + '</span>';
+        }).join("");
+
+        previewPath.innerHTML =
+          '<h4>学习路径</h4>' +
+          '<div class="path-item"><strong>当前进度</strong><span>' + state.currentProgress + '</span></div>' +
+          '<div class="path-item"><strong>规划范围</strong><span>' + state.startNode + ' → ' + state.endNode + '</span></div>' +
+          '<div class="path-item"><strong>学习方式</strong><span>新知学 + 测学 + 阶段复习</span></div>' +
+          '<div class="path-item"><strong>方案重点</strong><span>' + strategyText()[0] + '</span></div>';
+
+        previewHomework.innerHTML =
+          '<h4>作业策略</h4>' +
+          '<div class="path-item"><strong>规则 1</strong><span>' + homeworkText()[0] + '</span></div>' +
+          '<div class="path-item"><strong>规则 2</strong><span>' + homeworkText()[1] + '</span></div>' +
+          '<div class="path-item"><strong>规则 3</strong><span>' + homeworkText()[2] + '</span></div>';
+      }
+
+      function renderSummary() {
+        document.getElementById("summaryTarget").textContent = state.scoreTarget;
+        document.getElementById("summarySegment").textContent = segmentLabel();
+        document.getElementById("summaryProgress").textContent = state.currentProgress.split("｜")[0];
+        document.getElementById("summaryRange").textContent = state.startNode + " → " + state.endNode;
+        document.getElementById("planProgressText").textContent = state.startNode + "起步";
+        document.getElementById("submitNote").textContent = "系统将根据当前选择，自动生成" + state.studyTrack + "的个性化规划。";
+
+        var strategyRules = document.getElementById("strategyRules");
+        strategyRules.innerHTML = strategyText().map(function (item, index) {
+          return '<div class="stack-item"><strong>策略 ' + (index + 1) + '</strong><span>' + item + '</span></div>';
+        }).join("");
+
+        var homeworkRules = document.getElementById("homeworkRules");
+        var titles = ["日常作业", "错题回流", "章节复习", "期中期末"];
+        homeworkRules.innerHTML = homeworkText().map(function (item, index) {
+          return '<div class="stack-item"><strong>' + titles[index] + '</strong><span>' + item + '</span></div>';
+        }).join("");
+      }
+
+      document.addEventListener("click", function (event) {
+        var scoreBtn = event.target.closest("[data-score]");
+        if (scoreBtn) {
+          state.scoreTarget = scoreBtn.getAttribute("data-score");
+          setSingleActive(document.getElementById("scoreChoices"), scoreBtn, ".choice-btn");
+          renderPreview();
+          renderSummary();
+        }
+
+        var startBtn = event.target.closest("[data-started]");
+        if (startBtn) {
+          state.started = startBtn.getAttribute("data-started");
+          setSingleActive(document.getElementById("startedRow"), startBtn, ".tag-btn");
+          renderPreview();
+          renderSummary();
+        }
+
+        var homeworkBtn = event.target.closest("[data-homework]");
+        if (homeworkBtn) {
+          state.dailyHomework = homeworkBtn.getAttribute("data-homework");
+          setSingleActive(document.getElementById("dailyHomework"), homeworkBtn, ".tag-btn");
+          renderPreview();
+          renderSummary();
+        }
+
+        var reviewBtn = event.target.closest("#reviewOptions [data-key]");
+        if (reviewBtn) {
+          var key = reviewBtn.getAttribute("data-key");
+          state[key] = !state[key];
+          reviewBtn.classList.toggle("active", state[key]);
+          renderPreview();
+          renderSummary();
+        }
+
+        var toggleBtn = event.target.closest(".question .toggle-btn");
+        if (toggleBtn) {
+          var row = toggleBtn.parentNode;
+          var group = row.getAttribute("data-group");
+          setSingleActive(row, toggleBtn, ".toggle-btn");
+          var value = Number(toggleBtn.getAttribute("data-value"));
+          if (group.indexOf("ability") === 0) state.ability[Number(group.slice(-1)) - 1] = value;
+          if (group.indexOf("motivation") === 0) state.motivation[Number(group.slice(-1)) - 1] = value;
+          renderPreview();
+          renderSummary();
+        }
+
+        if (event.target === openPlanner) {
+          overlay.classList.remove("hidden");
+        }
+
+        if (event.target === closePlanner || event.target === overlay) {
+          overlay.classList.add("hidden");
+        }
+
+        if (event.target === createPlan) {
+          document.getElementById("planStatus").textContent = "规划已更新";
+          overlay.classList.add("hidden");
+          renderSummary();
+        }
+      });
+
+      document.getElementById("latestScore").addEventListener("input", function (event) {
+        state.latestScore = Number(event.target.value || 0);
+        renderPreview();
+        renderSummary();
+      });
+
+      document.getElementById("studyTrack").addEventListener("change", function (event) {
+        state.studyTrack = event.target.value;
+        renderPreview();
+        renderSummary();
+      });
+
+      document.getElementById("currentProgress").addEventListener("change", function (event) {
+        state.currentProgress = event.target.value;
+        renderPreview();
+        renderSummary();
+      });
+
+      document.getElementById("startNode").addEventListener("change", function (event) {
+        state.startNode = event.target.value;
+        renderPreview();
+        renderSummary();
+      });
+
+      document.getElementById("endNode").addEventListener("change", function (event) {
+        state.endNode = event.target.value;
+        renderPreview();
+        renderSummary();
+      });
+
+      document.getElementById("questionCount").addEventListener("change", function (event) {
+        state.questionCount = event.target.value;
+        renderPreview();
+        renderSummary();
+      });
+
+      document.getElementById("triggerTime").addEventListener("change", function (event) {
+        state.triggerTime = event.target.value;
+        renderPreview();
+        renderSummary();
+      });
+
+      renderPreview();
+      renderSummary();
+    }());
+  </script>
+</body>
+</html>

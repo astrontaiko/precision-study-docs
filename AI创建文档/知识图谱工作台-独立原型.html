@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>知识图谱工作台-独立原型</title>
+  <style>
+    :root {
+      --bg: #eef6ff;
+      --panel: rgba(255, 255, 255, 0.94);
+      --line: #d9e6fb;
+      --text: #1d2b45;
+      --muted: #6c7f9f;
+      --blue: #315df5;
+      --blue-soft: #eaf1ff;
+      --cyan: #61d0ff;
+      --cyan-soft: #dff7ff;
+      --violet: #9a72ff;
+      --violet-soft: #f2ebff;
+      --orange: #f0a128;
+      --orange-soft: #fff3df;
+      --green: #18b56a;
+      --green-soft: #e8fbf1;
+      --red: #ec5b63;
+      --red-soft: #fff0f1;
+      --shadow: 0 20px 48px rgba(64, 97, 164, 0.14);
+      --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 16%, rgba(49, 93, 245, 0.08), transparent 24%),
+        radial-gradient(circle at 88% 12%, rgba(97, 208, 255, 0.12), transparent 20%),
+        linear-gradient(180deg, #edf6ff 0%, #f7fbff 100%);
+    }
+    button, select, input { font: inherit; }
+    .app {
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .shell {
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr) 350px;
+      gap: 16px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+    .side, .detail {
+      position: sticky;
+      top: 20px;
+      padding: 16px;
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+    }
+    .canvas-panel {
+      overflow: hidden;
+    }
+    .hero {
+      padding: 18px;
+      border-bottom: 1px solid #e5eefc;
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,249,255,0.96));
+    }
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .hero-tags,
+    .toolbar-group,
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip,
+    .toolbar-btn,
+    .filter-btn,
+    .mini-btn,
+    .tab-btn {
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #4e658f;
+      cursor: pointer;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      font-size: 12px;
+      cursor: default;
+      background: #f7faff;
+    }
+    .toolbar-btn.active,
+    .filter-btn.active,
+    .tab-btn.active {
+      background: var(--blue-soft);
+      color: var(--blue);
+      border-color: #bfd2ff;
+      font-weight: 700;
+    }
+    .hero-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 320px;
+    }
+    .toolbar-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .legend {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      align-items: center;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+    .section-note {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+    .summary-card {
+      padding: 14px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #24375f, #315df5);
+      color: #fff;
+      margin-bottom: 14px;
+    }
+    .summary-card strong {
+      display: block;
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .metric {
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid #dce8fb;
+      background: #fbfdff;
+    }
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .metric strong {
+      font-size: 18px;
+    }
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .task-list,
+    .resource-list,
+    .answer-list,
+    .link-list,
+    .log-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .task-card,
+    .resource-card,
+    .answer-card,
+    .link-card,
+    .log-card {
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid #dce7fb;
+      background: #fff;
+    }
+    .task-card strong,
+    .resource-card strong,
+    .answer-card strong,
+    .link-card strong,
+    .log-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .task-card .meta,
+    .resource-card .meta,
+    .answer-card .meta,
+    .link-card .meta,
+    .log-card .meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .task-badges,
+    .inline-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid #d6e4fb;
+      background: #f7faff;
+      color: #4f6897;
+    }
+    .badge.task { background: var(--orange-soft); color: #946112; border-color: #ffe0af; }
+    .badge.video { background: var(--blue-soft); color: var(--blue); border-color: #cfe0ff; }
+    .badge.exercise { background: var(--green-soft); color: #168a54; border-color: #bde8d0; }
+    .badge.paper { background: var(--violet-soft); color: #6c44d0; border-color: #dccbff; }
+    .badge.result-good { background: var(--green-soft); color: #168a54; border-color: #bde8d0; }
+    .badge.result-mid { background: var(--orange-soft); color: #a56a11; border-color: #ffe0af; }
+    .badge.result-low { background: var(--red-soft); color: #c1434b; border-color: #ffc9cd; }
+
+    .canvas-body {
+      padding: 16px;
+    }
+    .map-board {
+      position: relative;
+      height: calc(100vh - 170px);
+      border-top: 1px solid #edf2fc;
+      background:
+        radial-gradient(circle at top, rgba(87, 123, 255, 0.08), transparent 34%),
+        linear-gradient(180deg, #fbfdff 0%, #f3f7ff 100%);
+      overflow: auto;
+      cursor: grab;
+    }
+    .map-board.dragging { cursor: grabbing; }
+    .map-stage {
+      position: relative;
+      min-width: 2280px;
+      min-height: 1260px;
+      transform-origin: 0 0;
+      transition: transform 0.2s ease;
+      padding: 28px 24px 120px;
+    }
+    .map-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .edge-main {
+      stroke: #b9c9f3;
+      stroke-width: 3;
+      fill: none;
+    }
+    .edge-related {
+      stroke: #c9b4ff;
+      stroke-width: 2;
+      fill: none;
+      stroke-dasharray: 8 6;
+      opacity: 0.65;
+    }
+    .edge-task {
+      stroke: #f0a128;
+      stroke-width: 2.5;
+      fill: none;
+      stroke-dasharray: 6 6;
+    }
+    .chapter-column {
+      position: absolute;
+      top: 72px;
+      width: 300px;
+    }
+    .chapter-card {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      padding: 14px 16px;
+      border-radius: 22px;
+      border: 1px solid #8ed8ff;
+      background: linear-gradient(180deg, #7fd7ff, #dff7ff);
+      box-shadow: 0 12px 28px rgba(69, 178, 226, 0.18);
+      text-align: center;
+    }
+    .chapter-card strong {
+      display: block;
+      font-size: 18px;
+      color: #6f4306;
+      margin-bottom: 6px;
+    }
+    .section-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-top: 18px;
+    }
+    .section-card {
+      padding: 12px;
+      border-radius: 20px;
+      border: 1px solid #dce7fb;
+      background: rgba(255,255,255,0.88);
+      box-shadow: 0 10px 22px rgba(73, 103, 164, 0.08);
+      position: relative;
+      min-height: 220px;
+    }
+    .section-card.selected,
+    .module-card.selected,
+    .task-node.selected,
+    .chapter-card.selected {
+      box-shadow: 0 0 0 3px rgba(49, 93, 245, 0.14), 0 16px 30px rgba(49, 93, 245, 0.14);
+      border-color: #9cb7ff;
+    }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .section-head strong {
+      font-size: 15px;
+      color: #253d69;
+    }
+    .section-meta {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .unit-card {
+      border: 1px solid #e0e9fb;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #fbfdff, #f5f9ff);
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .unit-card:last-child { margin-bottom: 0; }
+    .unit-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .unit-head strong {
+      font-size: 14px;
+      color: #314a74;
+    }
+    .module-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .module-card {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      border-radius: 14px;
+      border: 1px solid #e3eafb;
+      background: #fff;
+      padding: 10px;
+      cursor: pointer;
+      position: relative;
+    }
+    .module-diamond {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      transform: rotate(45deg);
+      border: 1px solid #d8b8ff;
+      background: linear-gradient(180deg, #fff5ff, #efe4ff);
+      box-shadow: 0 10px 20px rgba(164, 98, 255, 0.14);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      flex: none;
+    }
+    .module-diamond.module-merge {
+      border-color: #ffd7a3;
+      background: linear-gradient(180deg, #fff7ea, #fff0d9);
+      box-shadow: 0 10px 20px rgba(240, 161, 40, 0.14);
+    }
+    .module-diamond-inner {
+      transform: rotate(-45deg);
+      text-align: center;
+      font-size: 11px;
+      line-height: 1.35;
+      color: #6d45d1;
+      padding: 4px;
+    }
+    .module-diamond.module-merge .module-diamond-inner {
+      color: #9b650e;
+    }
+    .module-main strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+      color: #2b416c;
+    }
+    .module-main .meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .mastery-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: #edf2fc;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .mastery-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #6fd4ff, #315df5);
+    }
+    .module-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .mini-btn {
+      height: 26px;
+      padding: 0 10px;
+      font-size: 11px;
+      border-radius: 10px;
+    }
+    .task-node {
+      position: absolute;
+      width: 144px;
+      padding: 10px 12px;
+      border-radius: 18px;
+      border: 1px solid #ffd7a3;
+      background: linear-gradient(180deg, #fff9ed, #fff1da);
+      box-shadow: 0 14px 28px rgba(240, 161, 40, 0.18);
+      cursor: pointer;
+    }
+    .task-node::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border: 1px dashed rgba(240,161,40,0.42);
+      border-radius: 14px;
+      pointer-events: none;
+    }
+    .task-node strong {
+      display: block;
+      font-size: 13px;
+      color: #8b5d12;
+      margin-bottom: 6px;
+    }
+    .task-node .meta {
+      color: #87611d;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+    .tiny-toggle {
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #54709b;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .tiny-toggle.active {
+      background: var(--blue-soft);
+      border-color: #bfd2ff;
+      color: var(--blue);
+      font-weight: 700;
+    }
+    .form-block {
+      border: 1px solid #dfe8fb;
+      border-radius: 18px;
+      background: #fbfdff;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .form-block:last-child { margin-bottom: 0; }
+    .form-block h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+    .field {
+      margin-bottom: 10px;
+    }
+    .field:last-child { margin-bottom: 0; }
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      color: #546b94;
+      font-size: 12px;
+    }
+    .input,
+    .select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid #dce7fb;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+    .segmented {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .progress-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .floating-tip {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(26, 39, 66, 0.92);
+      color: #fff;
+      font-size: 12px;
+      box-shadow: 0 14px 30px rgba(18, 28, 46, 0.26);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+      z-index: 30;
+    }
+    .floating-tip.show { opacity: 1; }
+    .hover-tip {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%);
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(25, 37, 67, 0.94);
+      color: #fff;
+      font-size: 11px;
+      line-height: 1.5;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.14s ease, transform 0.14s ease;
+      z-index: 8;
+    }
+    .module-card:hover > .hover-tip,
+    .task-node:hover > .hover-tip,
+    .chapter-card:hover > .hover-tip,
+    .section-card:hover > .hover-tip {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    @media (max-width: 1460px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+      .side, .detail {
+        position: static;
+        max-height: none;
+      }
+      .map-board {
+        height: 880px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="shell">
+      <aside class="panel side">
+        <div class="summary-card">
+          <strong>知识图谱工作台</strong>
+          <div class="section-note" style="color:rgba(255,255,255,0.82); margin:0;">
+            既看结构，也看掌握度、任务、资源、结果和编辑策略。地图是主场景，任务作为挂载挑战附属在地图上。
+          </div>
+        </div>
+
+        <h2 class="section-title">地图总览</h2>
+        <div class="metric-grid" id="metricGrid"></div>
+
+        <h2 class="section-title">任务筛选</h2>
+        <div class="filter-bar" id="taskFilters"></div>
+
+        <h2 class="section-title">地图任务列表</h2>
+        <p class="section-note">只有当某些知识点学完、正确率达标或触发复盘条件时，任务才会挂载到地图上。点击任务会联动到相关节点。</p>
+        <div class="task-list" id="taskList"></div>
+
+        <h2 class="section-title" style="margin-top:16px;">最近动态</h2>
+        <div class="log-list" id="logList"></div>
+      </aside>
+
+      <main class="panel canvas-panel">
+        <div class="hero">
+          <div class="hero-top">
+            <div>
+              <h1>三年级数学 · 秋季学期知识图谱</h1>
+              <p>以“万以内的加法和减法”为当前重点章节，后续串联“相交线与平行线”“三角形”“轴对称与平移”示例结构。你可以在一张地图里查看结构关系、掌握情况、任务挂载和编辑策略。</p>
+              <div class="legend">
+                <span><span class="legend-dot" style="background:#7fd7ff;"></span>章节 / 节 / 元主线结构</span>
+                <span><span class="legend-dot" style="background:#c993ff;"></span>认知增量模</span>
+                <span><span class="legend-dot" style="background:#f0a128;"></span>融会贯通模</span>
+                <span><span class="legend-dot" style="background:#ffd37f;"></span>任务挑战节点</span>
+              </div>
+            </div>
+            <div class="hero-actions">
+              <div class="toolbar-group" id="modeSwitch"></div>
+              <div class="toolbar-row">
+                <div class="toolbar-group" id="displaySwitch"></div>
+                <div class="toolbar-group">
+                  <button class="toolbar-btn" id="zoomOut">缩小</button>
+                  <button class="toolbar-btn" id="zoomIn">放大</button>
+                  <button class="toolbar-btn" id="resetView">重置</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="canvas-body">
+          <div class="map-board" id="mapBoard">
+            <div class="map-stage" id="mapStage">
+              <svg class="map-svg" id="mapSvg"></svg>
+              <div id="mapNodes"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <aside class="panel detail">
+        <div id="detailPane"></div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="floating-tip" id="floatingTip"></div>
+
+  <script>
+    (function () {
+      var state = {
+        mode: "mastery",
+        taskFilter: "all",
+        selectedId: "module-add-carry-check",
+        scale: 1,
+        mapDrag: { active: false, startX: 0, startY: 0, left: 0, top: 0 }
+      };
+
+      var mapData = {
+        chapters: [
+          {
+            id: "chapter-1",
+            title: "第1章 万以内的加法和减法",
+            x: 60,
+            sections: [
+              {
+                id: "section-1-add",
+                title: "加法",
+                y: 130,
+                units: [
+                  {
+                    id: "unit-add-basic",
+                    title: "几百几十加几百几十的口算和笔算",
+                    modules: [
+                      {
+                        id: "module-add-basic-core",
+                        title: "几百几十加几百几十的口算和笔算",
+                        kind: "认知增量",
+                        difficulty: "基础",
+                        importance: "高",
+                        required: true,
+                        learningMode: "学",
+                        planChoice: "新知学",
+                        learned: true,
+                        accuracy: 96,
+                        mastery: 92,
+                        status: "已掌握",
+                        tagInfo: { 层级: "模", 路径: "主干", 认知类型: "认知增量", 难度: "基础", 考频: "高", 系统是否学过: "是", 校内是否学过: "是", 校内是否掌握: "是" },
+                        resources: [
+                          { type: "视频", title: "几百几十加几百几十 · 口算讲解", duration: "6分12秒" },
+                          { type: "题目", title: "基础口算 12 题", amount: "12题" }
+                        ],
+                        answers: [
+                          { title: "基础口算 12 题", result: "12/12", accuracy: 100, note: "完成快且稳定。" },
+                          { title: "课堂跟练 1", result: "8/10", accuracy: 80, note: "个位凑整时偶有粗心。" }
+                        ],
+                        links: { related: ["module-add-nocarry", "module-add-oncecarry"], upstream: [], downstream: ["module-add-application-1"] },
+                        hover: "已学过，适合快速测学确认"
+                      }
+                    ]
+                  },
+                  {
+                    id: "unit-add-nocarry",
+                    title: "三位数不进位加及不连续进位加法",
+                    modules: [
+                      {
+                        id: "module-add-nocarry",
+                        title: "三位数加三位数（不进位）",
+                        kind: "认知增量",
+                        difficulty: "基础",
+                        importance: "高",
+                        required: true,
+                        learningMode: "学",
+                        planChoice: "巩固学",
+                        learned: false,
+                        accuracy: 62,
+                        mastery: 58,
+                        status: "学习中",
+                        tagInfo: { 层级: "模", 路径: "主干", 认知类型: "认知增量", 难度: "基础", 考频: "高", 系统是否学过: "否", 校内是否学过: "否", 校内是否掌握: "否" },
+                        resources: [
+                          { type: "视频", title: "三位数不进位加法讲解", duration: "8分21秒" },
+                          { type: "题目", title: "不进位加法训练", amount: "15题" },
+                          { type: "讲义", title: "竖式对位错误清单", amount: "1页" }
+                        ],
+                        answers: [
+                          { title: "不进位加法训练", result: "9/15", accuracy: 60, note: "对位和进位判断混淆。" }
+                        ],
+                        links: { related: ["module-add-basic-core", "module-add-oncecarry"], upstream: ["module-add-basic-core"], downstream: ["module-add-carry-check"] },
+                        hover: "新知主干，当前掌握偏低"
+                      },
+                      {
+                        id: "module-add-oncecarry",
+                        title: "三位数加三位数（一次进位）",
+                        kind: "认知增量",
+                        difficulty: "基础",
+                        importance: "高",
+                        required: true,
+                        learningMode: "学",
+                        planChoice: "新知学",
+                        learned: false,
+                        accuracy: 54,
+                        mastery: 49,
+                        status: "待强化",
+                        tagInfo: { 层级: "模", 路径: "主干", 认知类型: "认知增量", 难度: "基础", 考频: "高", 系统是否学过: "否", 校内是否学过: "否", 校内是否掌握: "否" },
+                        resources: [
+                          { type: "视频", title: "一次进位加法拆步讲解", duration: "9分18秒" },
+                          { type: "题目", title: "一次进位专项", amount: "14题" }
+                        ],
+                        answers: [
+                          { title: "一次进位专项", result: "7/14", accuracy: 50, note: "进位位置容易遗漏。" }
+                        ],
+                        links: { related: ["module-add-nocarry"], upstream: ["module-add-basic-core"], downstream: ["module-add-carry-check"] },
+                        hover: "建议先学后练，再看错因"
+                      }
+                    ]
+                  },
+                  {
+                    id: "unit-add-carry-check",
+                    title: "三位数连续进位加法及加法的验算",
+                    modules: [
+                      {
+                        id: "module-add-carry-check",
+                        title: "三位数连续进位加法及加法的验算",
+                        kind: "认知增量",
+                        difficulty: "基础",
+                        importance: "高",
+                        required: true,
+                        learningMode: "学",
+                        planChoice: "新知学",
+                        learned: true,
+                        accuracy: 90,
+                        mastery: 88,
+                        status: "已掌握",
+                        tagInfo: { 层级: "模", 路径: "主干", 认知类型: "认知增量", 难度: "基础", 考频: "高", 系统是否学过: "是", 校内是否学过: "是", 校内是否掌握: "是" },
+                        resources: [
+                          { type: "视频", title: "连续进位与验算完整讲解", duration: "10分05秒" },
+                          { type: "题目", title: "连续进位验算任务", amount: "16题" },
+                          { type: "题目", title: "错题二刷", amount: "8题" }
+                        ],
+                        answers: [
+                          { title: "连续进位验算任务", result: "15/16", accuracy: 94, note: "验算步骤完整。" },
+                          { title: "错题二刷", result: "7/8", accuracy: 88, note: "末尾进位仍需回看。" }
+                        ],
+                        links: { related: ["module-add-nocarry", "module-add-oncecarry", "module-sum-pattern"], upstream: ["module-add-nocarry", "module-add-oncecarry"], downstream: ["task-chapter-review-1"] },
+                        hover: "当前选中：已掌握，可触发复习任务"
+                      },
+                      {
+                        id: "module-sum-pattern",
+                        title: "和是1000的两个数的数位特征",
+                        kind: "融会贯通",
+                        difficulty: "进阶",
+                        importance: "高",
+                        required: false,
+                        learningMode: "测学",
+                        planChoice: "巩固学",
+                        learned: true,
+                        accuracy: 76,
+                        mastery: 71,
+                        status: "可继续练",
+                        tagInfo: { 层级: "模", 路径: "分支", 认知类型: "融会贯通", 难度: "进阶", 考频: "高", 系统是否学过: "是", 校内是否学过: "否", 校内是否掌握: "部分掌握" },
+                        resources: [
+                          { type: "视频", title: "和的数位特征辨析", duration: "5分38秒" },
+                          { type: "题目", title: "数位特征判断题", amount: "10题" }
+                        ],
+                        answers: [
+                          { title: "数位特征判断题", result: "7/10", accuracy: 70, note: "十位和个位联动分析不足。" }
+                        ],
+                        links: { related: ["module-add-carry-check"], upstream: ["module-add-carry-check"], downstream: ["task-error-rework-1"] },
+                        hover: "进阶题模，适合测学"
+                      }
+                    ]
+                  },
+                  {
+                    id: "unit-add-application",
+                    title: "三位数加法应用题",
+                    modules: [
+                      {
+                        id: "module-add-application-1",
+                        title: "三位数加法一步应用题",
+                        kind: "融会贯通",
+                        difficulty: "进阶",
+                        importance: "高",
+                        required: true,
+                        learningMode: "测学",
+                        planChoice: "巩固学",
+                        learned: false,
+                        accuracy: 63,
+                        mastery: 60,
+                        status: "学习中",
+                        tagInfo: { 层级: "模", 路径: "分支", 认知类型: "融会贯通", 难度: "进阶", 考频: "高", 系统是否学过: "否", 校内是否学过: "否", 校内是否掌握: "否" },
+                        resources: [
+                          { type: "题目", title: "一步应用题练习", amount: "12题" },
+                          { type: "讲义", title: "条件提取提示卡", amount: "1页" }
+                        ],
+                        answers: [
+                          { title: "一步应用题练习", result: "8/12", accuracy: 67, note: "审题信息提取一般。" }
+                        ],
+                        links: { related: ["module-add-basic-core"], upstream: ["module-add-carry-check"], downstream: ["task-ability-paper"] },
+                        hover: "和实际问题关联，建议测学"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                id: "section-1-sub",
+                title: "减法",
+                y: 530,
+                units: [
+                  {
+                    id: "unit-sub-basic",
+                    title: "几百几十减几百几十的口算和笔算",
+                    modules: [
+                      {
+                        id: "module-sub-basic",
+                        title: "几百几十减几百几十的口算和笔算",
+                        kind: "认知增量",
+                        difficulty: "基础",
+                        importance: "高",
+                        required: true,
+                        learningMode: "学",
+                        planChoice: "新知学",
+                        learned: true,
+                        accuracy: 84,
+                        mastery: 80,
+                        status: "已完成",
+                        tagInfo: { 层级: "模", 路径: "主干", 认知类型: "认知增量", 难度: "基础", 考频: "高" },
+                        resources: [{ type: "视频", title: "减法口算与笔算讲解", duration: "7分05秒" }],
+                        answers: [{ title: "口算训练", result: "10/12", accuracy: 83, note: "借位时偶有失误。" }],
+                        links: { related: ["module-sub-borrow"], upstream: [], downstream: [] },
+                        hover: "减法主线的起点模"
+                      }
+                    ]
+                  },
+                  {
+                    id: "unit-sub-borrow",
+                    title: "三位数不退位减法及连续退位减法",
+                    modules: [
+                      {
+                        id: "module-sub-borrow",
+                        title: "三位数减三位数（连续退位）",
+                        kind: "认知增量",
+                        difficulty: "基础",
+                        importance: "高",
+                        required: true,
+                        learningMode: "学",
+                        planChoice: "新知学",
+                        learned: false,
+                        accuracy: 58,
+                        mastery: 52,
+                        status: "待强化",
+                        tagInfo: { 层级: "模", 路径: "主干", 认知类型: "认知增量", 难度: "基础", 考频: "高" },
+                        resources: [
+                          { type: "视频", title: "连续退位减法拆步", duration: "8分48秒" },
+                          { type: "题目", title: "连续退位训练", amount: "14题" }
+                        ],
+                        answers: [{ title: "连续退位训练", result: "7/14", accuracy: 50, note: "借位链条易断。" }],
+                        links: { related: ["module-sub-basic"], upstream: ["module-sub-basic"], downstream: ["task-error-rework-1"] },
+                        hover: "当前掌握偏低，建议优先处理"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            id: "chapter-2",
+            title: "第2章 相交线与平行线",
+            x: 620,
+            sections: [
+              {
+                id: "section-2-position",
+                title: "位置关系",
+                y: 150,
+                units: [
+                  {
+                    id: "unit-2-1",
+                    title: "直线位置关系",
+                    modules: [
+                      {
+                        id: "module-2-1",
+                        title: "两条直线的位置关系",
+                        kind: "认知增量",
+                        difficulty: "基础",
+                        importance: "高",
+                        required: true,
+                        learningMode: "学",
+                        planChoice: "新知学",
+                        learned: true,
+                        accuracy: 88,
+                        mastery: 84,
+                        status: "已完成",
+                        tagInfo: { 层级: "模", 路径: "主干", 认知类型: "认知增量", 难度: "基础", 考频: "高" },
+                        resources: [{ type: "视频", title: "位置关系快速识别", duration: "4分51秒" }],
+                        answers: [{ title: "位置关系小测", result: "9/10", accuracy: 90, note: "识别稳定。" }],
+                        links: { related: ["module-2-2"], upstream: [], downstream: ["task-chapter-review-2"] },
+                        hover: "第二章基础识别主线"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                id: "section-2-judge",
+                title: "规则判定",
+                y: 420,
+                units: [
+                  {
+                    id: "unit-2-2",
+                    title: "平行线判定",
+                    modules: [
+                      {
+                        id: "module-2-2",
+                        title: "探究直线平行的条件",
+                        kind: "认知增量",
+                        difficulty: "基础",
+                        importance: "高",
+                        required: true,
+                        learningMode: "学",
+                        planChoice: "巩固学",
+                        learned: false,
+                        accuracy: 65,
+                        mastery: 61,
+                        status: "学习中",
+                        tagInfo: { 层级: "模", 路径: "主干", 认知类型: "认知增量", 难度: "基础", 考频: "高" },
+                        resources: [{ type: "视频", title: "平行线判定条件", duration: "7分18秒" }],
+                        answers: [{ title: "判定题组", result: "8/12", accuracy: 67, note: "内错角判定还不稳。" }],
+                        links: { related: ["module-2-1"], upstream: ["module-2-1"], downstream: ["task-chapter-review-2"] },
+                        hover: "规则判定的核心节点"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            id: "chapter-3",
+            title: "第3章 三角形",
+            x: 1180,
+            sections: [
+              {
+                id: "section-3-classify",
+                title: "分类与角和",
+                y: 170,
+                units: [
+                  {
+                    id: "unit-3-1",
+                    title: "三角形分类",
+                    modules: [
+                      {
+                        id: "module-3-1",
+                        title: "三角形的概念与分类",
+                        kind: "认知增量",
+                        difficulty: "基础",
+                        importance: "高",
+                        required: true,
+                        learningMode: "学",
+                        planChoice: "新知学",
+                        learned: true,
+                        accuracy: 82,
+                        mastery: 79,
+                        status: "已完成",
+                        tagInfo: { 层级: "模", 路径: "主干", 认知类型: "认知增量", 难度: "基础", 考频: "高" },
+                        resources: [{ type: "视频", title: "三角形分类讲解", duration: "6分03秒" }],
+                        answers: [{ title: "分类专项", result: "8/10", accuracy: 80, note: "等边和等腰边界再看一遍。" }],
+                        links: { related: ["module-3-2"], upstream: [], downstream: ["task-triangle-special"] },
+                        hover: "第三章基础主线"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            id: "chapter-4",
+            title: "第4章 轴对称与平移",
+            x: 1740,
+            sections: [
+              {
+                id: "section-4-transform",
+                title: "概念与作图",
+                y: 200,
+                units: [
+                  {
+                    id: "unit-4-1",
+                    title: "轴对称作图",
+                    modules: [
+                      {
+                        id: "module-4-1",
+                        title: "轴对称作图",
+                        kind: "认知增量",
+                        difficulty: "基础",
+                        importance: "中",
+                        required: true,
+                        learningMode: "学",
+                        planChoice: "新知学",
+                        learned: false,
+                        accuracy: 0,
+                        mastery: 36,
+                        status: "未开始",
+                        tagInfo: { 层级: "模", 路径: "主干", 认知类型: "认知增量", 难度: "基础", 考频: "中" },
+                        resources: [{ type: "视频", title: "轴对称作图入门", duration: "5分42秒" }],
+                        answers: [],
+                        links: { related: [], upstream: [], downstream: [] },
+                        hover: "尚未开始的新知模"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        tasks: [
+          {
+            id: "task-chapter-review-1",
+            title: "章节复习挑战",
+            type: "章节复习",
+            date: "2026-04-06",
+            due: "建议在开始下一章前完成",
+            linkedTo: "module-add-carry-check",
+            x: 414,
+            y: 442,
+            condition: "连续进位加法掌握度 >= 85%",
+            description: "把加法主线中的核心题重新串一次，验证是不是已经形成稳定掌握。",
+            tags: ["章节复盘", "系统自动生成"]
+          },
+          {
+            id: "task-error-rework-1",
+            title: "错题重练",
+            type: "错题练习",
+            date: "2026-04-06",
+            due: "建议在本周内完成",
+            linkedTo: "module-sub-borrow",
+            x: 352,
+            y: 716,
+            condition: "连续退位减法正确率 < 60%",
+            description: "针对借位链条错误自动生成 8 题重练。",
+            tags: ["错误回流", "系统自动生成"]
+          },
+          {
+            id: "task-ability-paper",
+            title: "学习能力分层卷",
+            type: "试卷",
+            date: "2026-04-03",
+            due: "建议在开始下一章前完成",
+            linkedTo: "module-add-application-1",
+            x: 530,
+            y: 294,
+            condition: "应用题学习中且能力标签 = 中",
+            description: "根据当前能力标签自动投放一份先易后中的分层卷。",
+            tags: ["能力分层", "试卷"]
+          },
+          {
+            id: "task-chapter-review-2",
+            title: "平行线判定基础巩固",
+            type: "专项练习",
+            date: "2026-04-06",
+            due: "建议在期中考试前完成",
+            linkedTo: "module-2-2",
+            x: 936,
+            y: 474,
+            condition: "判定题正确率 60%-70%",
+            description: "继续通过同位角、内错角判断训练稳定基础分。",
+            tags: ["专项训练", "作业"]
+          },
+          {
+            id: "task-triangle-special",
+            title: "三角形专题闯关",
+            type: "任务挑战",
+            date: "2026-03-30",
+            due: "建议在下一次专题课前完成",
+            linkedTo: "module-3-1",
+            x: 1498,
+            y: 220,
+            condition: "三角形分类已完成，自动解锁专题闯关",
+            description: "像游戏副本一样挂在地图上的专题任务，完成后可再解锁下一组挑战。",
+            tags: ["任务挑战", "专题闯关"]
+          }
+        ]
+      };
+
+      var allModules = [];
+      mapData.chapters.forEach(function (chapter) {
+        chapter.sections.forEach(function (section) {
+          section.units.forEach(function (unit) {
+            unit.modules.forEach(function (module) {
+              module.chapterId = chapter.id;
+              module.sectionId = section.id;
+              module.unitId = unit.id;
+              module.chapterTitle = chapter.title;
+              module.sectionTitle = section.title;
+              module.unitTitle = unit.title;
+              allModules.push(module);
+            });
+          });
+        });
+      });
+
+      function findModule(id) {
+        return allModules.find(function (item) { return item.id === id; });
+      }
+
+      function findNodeById(id) {
+        var task = mapData.tasks.find(function (item) { return item.id === id; });
+        if (task) return task;
+        var module = findModule(id);
+        if (module) return module;
+        for (var i = 0; i < mapData.chapters.length; i += 1) {
+          var chapter = mapData.chapters[i];
+          if (chapter.id === id) return chapter;
+          for (var j = 0; j < chapter.sections.length; j += 1) {
+            var section = chapter.sections[j];
+            if (section.id === id) return section;
+            for (var k = 0; k < section.units.length; k += 1) {
+              var unit = section.units[k];
+              if (unit.id === id) return unit;
+            }
+          }
+        }
+        return null;
+      }
+
+      function moduleColor(module) {
+        return module.kind === "认知增量" ? "module-new" : "module-merge";
+      }
+
+      function masteryClass(module) {
+        if (module.accuracy >= 85) return "result-good";
+        if (module.accuracy >= 60) return "result-mid";
+        return "result-low";
+      }
+
+      function showTip(text) {
+        var tip = document.getElementById("floatingTip");
+        tip.textContent = text;
+        tip.classList.add("show");
+        clearTimeout(showTip.timer);
+        showTip.timer = setTimeout(function () {
+          tip.classList.remove("show");
+        }, 1600);
+      }
+
+      function currentSelected() {
+        return findNodeById(state.selectedId);
+      }
+
+      function renderMetrics() {
+        var moduleCount = allModules.length;
+        var learnedCount = allModules.filter(function (item) { return item.learned; }).length;
+        var taskCount = mapData.tasks.length;
+        var avgAccuracy = Math.round(allModules.reduce(function (sum, item) { return sum + item.accuracy; }, 0) / moduleCount);
+        document.getElementById("metricGrid").innerHTML = [
+          ["章节数", mapData.chapters.length + "章"],
+          ["题模数", moduleCount + "个"],
+          ["已学题模", learnedCount + "个"],
+          ["平均正确率", avgAccuracy + "%"],
+          ["挂载任务", taskCount + "个"],
+          ["当前选中", currentSelected() ? (currentSelected().title || currentSelected().name || "节点") : "无"]
+        ].map(function (row) {
+          return '<div class="metric"><span>' + row[0] + '</span><strong>' + row[1] + '</strong></div>';
+        }).join("");
+      }
+
+      function renderTaskFilters() {
+        var filters = [
+          { id: "all", label: "全部任务" },
+          { id: "章节复习", label: "章节复习" },
+          { id: "错题练习", label: "错题练习" },
+          { id: "试卷", label: "试卷" },
+          { id: "任务挑战", label: "任务挑战" }
+        ];
+        document.getElementById("taskFilters").innerHTML = filters.map(function (filter) {
+          return '<button class="filter-btn' + (state.taskFilter === filter.id ? ' active' : '') + '" data-task-filter="' + filter.id + '">' + filter.label + '</button>';
+        }).join("");
+        document.querySelectorAll("[data-task-filter]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            state.taskFilter = btn.getAttribute("data-task-filter");
+            renderTaskFilters();
+            renderTaskList();
+          });
+        });
+      }
+
+      function filteredTasks() {
+        if (state.taskFilter === "all") return mapData.tasks;
+        return mapData.tasks.filter(function (task) { return task.type === state.taskFilter; });
+      }
+
+      function renderTaskList() {
+        var tasks = filteredTasks();
+        document.getElementById("taskList").innerHTML = tasks.map(function (task) {
+          return '<div class="task-card" data-select-node="' + task.id + '">' +
+            '<strong>' + task.title + '</strong>' +
+            '<div class="meta">' + task.type + ' · ' + task.date + '</div>' +
+            '<div class="meta" style="margin-top:4px;">触发条件：' + task.condition + '</div>' +
+            '<div class="meta" style="margin-top:4px;">' + task.due + '</div>' +
+            '<div class="task-badges">' + task.tags.map(function (tag) { return '<span class="badge task">' + tag + '</span>'; }).join("") + '</div>' +
+          '</div>';
+        }).join("") || '<div class="task-card"><strong>暂无匹配任务</strong><div class="meta">当前筛选下没有任务。</div></div>';
+      }
+
+      function renderLogs() {
+        var logs = [
+          "连续进位加法掌握度达到 88%，自动生成“章节复习挑战”。",
+          "连续退位减法正确率低于 60%，触发错题重练。",
+          "三角形分类已学完，解锁专题闯关任务。",
+          "老师刚刚把“和是1000的两个数的数位特征”切成“测学”。"
+        ];
+        document.getElementById("logList").innerHTML = logs.map(function (item, index) {
+          return '<div class="log-card"><strong>动态 ' + (index + 1) + '</strong><div class="meta">' + item + '</div></div>';
+        }).join("");
+      }
+
+      function renderModeSwitch() {
+        var groups = [
+          { id: "structure", label: "结构视图" },
+          { id: "mastery", label: "掌握度视图" },
+          { id: "edit", label: "编辑视图" }
+        ];
+        document.getElementById("modeSwitch").innerHTML = groups.map(function (item) {
+          return '<button class="tab-btn' + (state.mode === item.id ? ' active' : '') + '" data-mode="' + item.id + '">' + item.label + '</button>';
+        }).join("");
+        document.querySelectorAll("[data-mode]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            state.mode = btn.getAttribute("data-mode");
+            renderModeSwitch();
+            renderMap();
+            renderDetail();
+          });
+        });
+      }
+
+      function renderDisplaySwitch() {
+        document.getElementById("displaySwitch").innerHTML = [
+          '<span class="chip">当前模式：' + (state.mode === "structure" ? "看结构" : (state.mode === "mastery" ? "看掌握" : "做编辑")) + '</span>',
+          '<span class="chip">任务会挂载在地图上</span>',
+          '<span class="chip">点击任意模查看详情</span>'
+        ].join("");
+      }
+
+      function line(x1, y1, x2, y2, cls) {
+        return '<line class="' + cls + '" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '"></line>';
+      }
+
+      function renderMap() {
+        var svg = [];
+        var nodes = [];
+        var chapterWidth = 300;
+        var unitGap = 12;
+
+        mapData.chapters.forEach(function (chapter, chapterIndex) {
+          nodes.push(
+            '<div class="chapter-column" style="left:' + chapter.x + 'px;">' +
+              '<div class="chapter-card graph-selectable' + (state.selectedId === chapter.id ? ' selected' : '') + '" data-select-node="' + chapter.id + '">' +
+                '<div class="hover-tip">章节 · 点击查看整体结构与统计</div>' +
+                '<strong>' + chapter.title + '</strong>' +
+                '<div class="section-meta">' + chapter.sections.length + '节 · ' + chapter.sections.reduce(function (sum, section) { return sum + section.units.length; }, 0) + '元</div>' +
+              '</div>' +
+              '<div class="section-stack">' +
+                chapter.sections.map(function (section) {
+                  var totalModules = section.units.reduce(function (sum, unit) { return sum + unit.modules.length; }, 0);
+                  return '<div class="section-card graph-selectable' + (state.selectedId === section.id ? ' selected' : '') + '" data-select-node="' + section.id + '">' +
+                    '<div class="hover-tip">节 · ' + totalModules + '个题模</div>' +
+                    '<div class="section-head"><strong>' + section.title + '</strong><span class="section-meta">' + section.units.length + '元</span></div>' +
+                    section.units.map(function (unit) {
+                      return '<div class="unit-card">' +
+                        '<div class="unit-head"><strong class="graph-selectable' + (state.selectedId === unit.id ? ' selected' : '') + '" data-select-node="' + unit.id + '" style="cursor:pointer;">' + unit.title + '</strong><span class="section-meta">' + unit.modules.length + '模</span></div>' +
+                        '<div class="module-stack">' +
+                          unit.modules.map(function (module) {
+                            var accuracy = state.mode === "structure" ? 0 : module.accuracy;
+                            return '<div class="module-card graph-selectable' + (state.selectedId === module.id ? ' selected' : '') + '" data-select-node="' + module.id + '">' +
+                              '<div class="hover-tip">' + module.hover + '</div>' +
+                              '<div class="module-diamond ' + moduleColor(module) + '">' +
+                                '<div class="module-diamond-inner">' + module.kind.replace("认知增量", "认知增量").replace("融会贯通", "融会贯通") + '</div>' +
+                              '</div>' +
+                              '<div class="module-main">' +
+                                '<strong>' + module.title + '</strong>' +
+                                '<div class="meta">难度：' + module.difficulty + ' · 重要度：' + module.importance + ' · ' + module.status + '</div>' +
+                                (state.mode !== "structure" ? '<div class="mastery-bar"><div class="mastery-fill" style="width:' + Math.max(8, accuracy) + '%;"></div></div><div class="inline-badges"><span class="badge ' + masteryClass(module) + '">正确率 ' + module.accuracy + '%</span><span class="badge">' + (module.required ? "必学" : "非必学") + '</span><span class="badge">' + module.learningMode + '</span></div>' : '<div class="inline-badges"><span class="badge">' + module.kind + '</span><span class="badge">' + module.learningMode + '</span></div>') +
+                                (state.mode === "edit" ? '<div class="module-actions"><button class="mini-btn" data-toggle-required="' + module.id + '">' + (module.required ? '改成非必学' : '改成必学') + '</button><button class="mini-btn" data-toggle-mode="' + module.id + '">切换学/测学</button></div>' : '') +
+                              '</div>' +
+                            '</div>';
+                          }).join("") +
+                        '</div>' +
+                      '</div>';
+                    }).join("") +
+                  '</div>';
+                }).join("") +
+              '</div>' +
+            '</div>'
+          );
+        });
+
+        mapData.tasks.forEach(function (task) {
+          svg.push(line(task.x, task.y, task.x - 64, task.y - 44, "edge-task"));
+          nodes.push(
+            '<div class="task-node graph-selectable' + (state.selectedId === task.id ? ' selected' : '') + '" data-select-node="' + task.id + '" style="left:' + task.x + 'px; top:' + task.y + 'px;">' +
+              '<div class="hover-tip">任务 · 点击查看触发条件与关联节点</div>' +
+              '<strong>' + task.title + '</strong>' +
+              '<div class="meta">' + task.type + ' · ' + task.date + '</div>' +
+              '<div class="inline-badges"><span class="badge task">' + task.due + '</span></div>' +
+            '</div>'
+          );
+        });
+
+        allModules.forEach(function (module) {
+          (module.links.related || []).forEach(function (targetId) {
+            var target = findModule(targetId);
+            if (!target) return;
+            var start = modulePosition(module.id);
+            var end = modulePosition(target.id);
+            if (start && end) svg.push(line(start.x, start.y, end.x, end.y, "edge-related"));
+          });
+        });
+
+        document.getElementById("mapSvg").innerHTML = svg.join("");
+        document.getElementById("mapNodes").innerHTML = nodes.join("");
+
+        document.querySelectorAll("[data-select-node]").forEach(function (el) {
+          el.addEventListener("click", function (event) {
+            event.stopPropagation();
+            state.selectedId = el.getAttribute("data-select-node");
+            renderMetrics();
+            renderTaskList();
+            renderMap();
+            renderDetail();
+          });
+        });
+
+        document.querySelectorAll("[data-toggle-required]").forEach(function (el) {
+          el.addEventListener("click", function (event) {
+            event.stopPropagation();
+            var module = findModule(el.getAttribute("data-toggle-required"));
+            if (!module) return;
+            module.required = !module.required;
+            showTip(module.required ? "已改为必学" : "已改为非必学");
+            renderMap();
+            renderDetail();
+          });
+        });
+
+        document.querySelectorAll("[data-toggle-mode]").forEach(function (el) {
+          el.addEventListener("click", function (event) {
+            event.stopPropagation();
+            var module = findModule(el.getAttribute("data-toggle-mode"));
+            if (!module) return;
+            module.learningMode = module.learningMode === "学" ? "测学" : "学";
+            showTip("已切换学习方式为“" + module.learningMode + "”");
+            renderMap();
+            renderDetail();
+          });
+        });
+      }
+
+      function modulePosition(id) {
+        var positions = {
+          "module-add-basic-core": { x: 202, y: 302 },
+          "module-add-nocarry": { x: 202, y: 466 },
+          "module-add-oncecarry": { x: 202, y: 548 },
+          "module-add-carry-check": { x: 202, y: 692 },
+          "module-sum-pattern": { x: 202, y: 774 },
+          "module-add-application-1": { x: 202, y: 918 },
+          "module-sub-basic": { x: 202, y: 1130 },
+          "module-sub-borrow": { x: 202, y: 1290 },
+          "module-2-1": { x: 764, y: 344 },
+          "module-2-2": { x: 764, y: 612 },
+          "module-3-1": { x: 1324, y: 364 },
+          "module-4-1": { x: 1884, y: 394 }
+        };
+        return positions[id] || null;
+      }
+
+      function renderDetail() {
+        var node = currentSelected();
+        if (!node) {
+          document.getElementById("detailPane").innerHTML = '<div class="form-block"><h3>节点详情</h3><div class="section-note">点击任意章节、节、元、题模或任务节点查看详情。</div></div>';
+          return;
+        }
+
+        if (node.type || String(node.id || "").indexOf("task-") === 0) {
+          var linked = findModule(node.linkedTo);
+          document.getElementById("detailPane").innerHTML =
+            '<div class="form-block"><h3>任务详情</h3><div class="field"><label>任务名称</label><input class="input" value="' + node.title + '" readonly></div><div class="progress-note">触发条件：' + node.condition + '</div><div class="progress-note">建议完成时间：' + node.due + '</div></div>' +
+            '<div class="form-block"><h3>任务说明</h3><div class="section-note">' + node.description + '</div><div class="inline-badges">' + node.tags.map(function (tag) { return '<span class="badge task">' + tag + '</span>'; }).join("") + '</div></div>' +
+            '<div class="form-block"><h3>挂载位置</h3><div class="link-list">' +
+              '<div class="link-card"><strong>' + (linked ? linked.title : "未找到关联节点") + '</strong><div class="meta">' + (linked ? (linked.chapterTitle + ' · ' + linked.sectionTitle + ' · ' + linked.unitTitle) : '') + '</div></div>' +
+            '</div></div>';
+          return;
+        }
+
+        if (node.modules) {
+          document.getElementById("detailPane").innerHTML =
+            '<div class="form-block"><h3>元详情</h3><div class="field"><label>元名称</label><input class="input" value="' + node.title + '" readonly></div><div class="progress-note">本元下共有 ' + node.modules.length + ' 个题模，可继续点击题模查看资源、作答结果和编辑策略。</div></div>';
+          return;
+        }
+
+        if (node.units) {
+          document.getElementById("detailPane").innerHTML =
+            '<div class="form-block"><h3>节详情</h3><div class="field"><label>节名称</label><input class="input" value="' + node.title + '" readonly></div><div class="progress-note">这一节承载多个知识元，适合看整体结构和关联分布。</div></div>';
+          return;
+        }
+
+        if (node.sections) {
+          document.getElementById("detailPane").innerHTML =
+            '<div class="form-block"><h3>章节详情</h3><div class="field"><label>章节名称</label><input class="input" value="' + node.title + '" readonly></div><div class="progress-note">可以从这里理解整章结构，再深入到具体题模。</div></div>';
+          return;
+        }
+
+        var module = node;
+        var relatedModules = (module.links.related || []).map(findModule).filter(Boolean);
+        var upstreamModules = (module.links.upstream || []).map(findModule).filter(Boolean);
+        var downstreamModules = (module.links.downstream || []).map(function (id) {
+          return findModule(id) || mapData.tasks.find(function (task) { return task.id === id; });
+        }).filter(Boolean);
+
+        document.getElementById("detailPane").innerHTML =
+          '<div class="form-block">' +
+            '<h3>题模详情</h3>' +
+            '<div class="field"><label>题模名称</label><input class="input" id="moduleTitleInput" value="' + module.title.replace(/"/g, '&quot;') + '"></div>' +
+            '<div class="segmented">' +
+              '<button class="tiny-toggle' + (module.required ? ' active' : '') + '" id="toggleRequiredBtn">' + (module.required ? '必学' : '非必学') + '</button>' +
+              '<button class="tiny-toggle' + (module.learningMode === '学' ? ' active' : '') + '" id="toggleLearningModeBtn">' + module.learningMode + '</button>' +
+              '<button class="tiny-toggle" id="saveModuleBtn">保存修改</button>' +
+            '</div>' +
+            '<div class="progress-note">章节：' + module.chapterTitle + ' · 节：' + module.sectionTitle + ' · 元：' + module.unitTitle + '</div>' +
+          '</div>' +
+          '<div class="form-block">' +
+            '<h3>掌握表现</h3>' +
+            '<div class="metric-grid">' +
+              '<div class="metric"><span>状态</span><strong>' + module.status + '</strong></div>' +
+              '<div class="metric"><span>正确率</span><strong>' + module.accuracy + '%</strong></div>' +
+              '<div class="metric"><span>掌握度</span><strong>' + module.mastery + '%</strong></div>' +
+              '<div class="metric"><span>学习方案</span><strong>' + module.planChoice + '</strong></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="form-block">' +
+            '<h3>策略编辑</h3>' +
+            '<div class="field"><label>是否必学</label><select class="select" id="requiredSelect"><option value="true"' + (module.required ? ' selected' : '') + '>必学</option><option value="false"' + (!module.required ? ' selected' : '') + '>非必学</option></select></div>' +
+            '<div class="field"><label>学习方式</label><select class="select" id="learningModeSelect"><option' + (module.learningMode === '学' ? ' selected' : '') + '>学</option><option' + (module.learningMode === '测学' ? ' selected' : '') + '>测学</option></select></div>' +
+            '<div class="field"><label>学习方案选择</label><select class="select" id="planChoiceSelect"><option' + (module.planChoice === '新知学' ? ' selected' : '') + '>新知学</option><option' + (module.planChoice === '巩固学' ? ' selected' : '') + '>巩固学</option><option' + (module.planChoice === '跳学' ? ' selected' : '') + '>跳学</option></select></div>' +
+          '</div>' +
+          '<div class="form-block"><h3>标签信息</h3><div class="link-list">' +
+            Object.keys(module.tagInfo).map(function (key) {
+              return '<div class="link-card"><strong>' + key + '</strong><div class="meta">' + module.tagInfo[key] + '</div></div>';
+            }).join("") +
+          '</div></div>' +
+          '<div class="form-block"><h3>资源明细</h3><div class="resource-list">' +
+            module.resources.map(function (resource) {
+              return '<div class="resource-card"><strong>' + resource.title + '</strong><div class="meta">' + resource.type + ' · ' + (resource.duration || resource.amount || '') + '</div><div class="inline-badges"><span class="badge ' + (resource.type === '视频' ? 'video' : (resource.type === '题目' ? 'exercise' : 'paper')) + '">' + resource.type + '</span></div></div>';
+            }).join("") +
+          '</div></div>' +
+          '<div class="form-block"><h3>学生作答结果</h3><div class="answer-list">' +
+            (module.answers.length ? module.answers.map(function (answer) {
+              return '<div class="answer-card"><strong>' + answer.title + '</strong><div class="meta">结果：' + answer.result + ' · 正确率 ' + answer.accuracy + '%</div><div class="meta" style="margin-top:4px;">' + answer.note + '</div><div class="inline-badges"><span class="badge ' + (answer.accuracy >= 85 ? 'result-good' : (answer.accuracy >= 60 ? 'result-mid' : 'result-low')) + '">' + (answer.accuracy >= 85 ? '掌握稳定' : (answer.accuracy >= 60 ? '继续练习' : '需重点补救')) + '</span></div></div>';
+            }).join("") : '<div class="answer-card"><strong>暂无作答</strong><div class="meta">这个题模还没有学生作答记录。</div></div>') +
+          '</div></div>' +
+          '<div class="form-block"><h3>上下游与关联节点</h3><div class="link-list">' +
+            (upstreamModules.length ? upstreamModules.map(function (item) {
+              return '<div class="link-card"><strong>上游 · ' + item.title + '</strong><div class="meta">' + item.status + ' · 正确率 ' + item.accuracy + '%</div></div>';
+            }).join("") : '') +
+            (relatedModules.length ? relatedModules.map(function (item) {
+              return '<div class="link-card"><strong>关联 · ' + item.title + '</strong><div class="meta">' + item.status + ' · 正确率 ' + item.accuracy + '%</div></div>';
+            }).join("") : '') +
+            (downstreamModules.length ? downstreamModules.map(function (item) {
+              var title = item.title;
+              var meta = item.status ? (item.status + ' · 正确率 ' + item.accuracy + '%') : ('任务节点 · ' + item.type);
+              return '<div class="link-card"><strong>下游 · ' + title + '</strong><div class="meta">' + meta + '</div></div>';
+            }).join("") : '') +
+          '</div></div>';
+
+        var saveBtn = document.getElementById("saveModuleBtn");
+        var toggleRequiredBtn = document.getElementById("toggleRequiredBtn");
+        var toggleLearningModeBtn = document.getElementById("toggleLearningModeBtn");
+        var requiredSelect = document.getElementById("requiredSelect");
+        var learningModeSelect = document.getElementById("learningModeSelect");
+        var planChoiceSelect = document.getElementById("planChoiceSelect");
+        var moduleTitleInput = document.getElementById("moduleTitleInput");
+
+        toggleRequiredBtn.addEventListener("click", function () {
+          module.required = !module.required;
+          renderMap();
+          renderDetail();
+          showTip(module.required ? "已切换为必学" : "已切换为非必学");
+        });
+        toggleLearningModeBtn.addEventListener("click", function () {
+          module.learningMode = module.learningMode === "学" ? "测学" : "学";
+          renderMap();
+          renderDetail();
+          showTip("学习方式已切换");
+        });
+        saveBtn.addEventListener("click", function () {
+          module.title = moduleTitleInput.value.trim() || module.title;
+          module.required = requiredSelect.value === "true";
+          module.learningMode = learningModeSelect.value;
+          module.planChoice = planChoiceSelect.value;
+          renderMetrics();
+          renderMap();
+          renderDetail();
+          showTip("题模策略已保存");
+        });
+      }
+
+      function bindBoardDrag() {
+        var board = document.getElementById("mapBoard");
+        board.addEventListener("mousedown", function (event) {
+          if (event.target.closest("button, select, input")) return;
+          state.mapDrag.active = true;
+          state.mapDrag.startX = event.clientX;
+          state.mapDrag.startY = event.clientY;
+          state.mapDrag.left = board.scrollLeft;
+          state.mapDrag.top = board.scrollTop;
+          board.classList.add("dragging");
+        });
+        window.addEventListener("mousemove", function (event) {
+          if (!state.mapDrag.active) return;
+          board.scrollLeft = state.mapDrag.left - (event.clientX - state.mapDrag.startX);
+          board.scrollTop = state.mapDrag.top - (event.clientY - state.mapDrag.startY);
+        });
+        window.addEventListener("mouseup", function () {
+          state.mapDrag.active = false;
+          board.classList.remove("dragging");
+        });
+      }
+
+      function bindZoom() {
+        function applyScale() {
+          document.getElementById("mapStage").style.transform = "scale(" + state.scale + ")";
+        }
+        document.getElementById("zoomIn").addEventListener("click", function () {
+          state.scale = Math.min(1.7, +(state.scale + 0.08).toFixed(2));
+          applyScale();
+        });
+        document.getElementById("zoomOut").addEventListener("click", function () {
+          state.scale = Math.max(0.68, +(state.scale - 0.08).toFixed(2));
+          applyScale();
+        });
+        document.getElementById("resetView").addEventListener("click", function () {
+          state.scale = 1;
+          applyScale();
+          document.getElementById("mapBoard").scrollLeft = 0;
+          document.getElementById("mapBoard").scrollTop = 0;
+        });
+      }
+
+      renderMetrics();
+      renderTaskFilters();
+      renderTaskList();
+      renderLogs();
+      renderModeSwitch();
+      renderDisplaySwitch();
+      renderMap();
+      renderDetail();
+      bindBoardDrag();
+      bindZoom();
+    })();
+  </script>
+</body>
+</html>

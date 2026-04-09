@@ -1,0 +1,3136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>个性化学习内容双模式原型</title>
+  <style>
+    :root {
+      --bg: #f3f7ff;
+      --panel: rgba(255, 255, 255, 0.92);
+      --line: #dbe7fb;
+      --soft: #edf4ff;
+      --blue: #3f6dff;
+      --blue-soft: #e8f0ff;
+      --text: #1e2a44;
+      --muted: #7a88a5;
+      --green: #18b56a;
+      --orange: #f0a128;
+      --shadow: 0 20px 48px rgba(72, 103, 182, 0.14);
+      --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: var(--font); color: var(--text); background: linear-gradient(180deg, #edf4ff, #f9fbff); }
+    button, select, input { font: inherit; }
+    .hidden { display: none !important; }
+
+    .screen { min-height: 100vh; }
+
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 20% 12%, rgba(86, 129, 255, 0.16), transparent 24%),
+        radial-gradient(circle at 86% 22%, rgba(95, 197, 255, 0.18), transparent 20%),
+        linear-gradient(180deg, #edf4ff 0%, #f9fbff 100%);
+    }
+    .hero-card {
+      width: min(860px, 100%);
+      padding: 56px;
+      border-radius: 36px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(219,231,251,0.96);
+      box-shadow: var(--shadow);
+      text-align: center;
+      backdrop-filter: blur(12px);
+    }
+    .hero-card h1 { margin: 0 0 16px; font-size: 42px; }
+    .hero-card p { margin: 0 auto 28px; max-width: 620px; color: var(--muted); font-size: 16px; line-height: 1.8; }
+    .primary-btn, .secondary-btn {
+      height: 52px;
+      border-radius: 16px;
+      padding: 0 24px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .primary-btn {
+      background: linear-gradient(135deg, #3f6dff, #5c84ff);
+      color: #fff;
+      box-shadow: 0 16px 32px rgba(63,109,255,0.24);
+    }
+    .secondary-btn {
+      background: #fff;
+      color: #45608f;
+      border-color: var(--line);
+    }
+    .hero-tags {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 26px;
+    }
+    .hero-tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: #4a618c;
+      font-size: 13px;
+    }
+
+    .plan-screen {
+      padding: 28px;
+    }
+    .plan-shell {
+      width: min(1240px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.02fr 0.98fr;
+      gap: 18px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+      backdrop-filter: blur(12px);
+    }
+    .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .head h2 { margin: 0 0 8px; font-size: 28px; }
+    .head p { margin: 0; color: var(--muted); line-height: 1.7; }
+    .step-chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #f7faff;
+      border: 1px solid var(--line);
+      color: #4c638d;
+      font-size: 13px;
+    }
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      color: #4d628b;
+      font-size: 14px;
+    }
+    .choice-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .choice-btn {
+      min-width: 108px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #f8fbff;
+      color: #445a84;
+      cursor: pointer;
+    }
+    .choice-btn.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-weight: 700;
+    }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .input, .select {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #f8fbff;
+      color: var(--text);
+      outline: none;
+    }
+    .plan-preview {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .preview-block {
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #f9fbff, #ffffff);
+    }
+    .preview-block h3 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-size: 12px;
+    }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .table th, .table td {
+      border-bottom: 1px solid #e8eefc;
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .table th { color: var(--muted); font-weight: 600; }
+    .table tr:last-child td { border-bottom: none; }
+    .btn-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 18px; }
+    .wizard-screen {
+      padding: 34px 24px 48px;
+    }
+    .wizard-shell {
+      width: min(980px, 100%);
+      margin: 0 auto;
+    }
+    .wizard-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .wizard-header h2 {
+      margin: 0 0 10px;
+      font-size: 34px;
+    }
+    .wizard-header p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .stepper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      margin: 26px 0 22px;
+      flex-wrap: wrap;
+    }
+    .stepper-line {
+      width: 56px;
+      height: 2px;
+      background: #bdeed9;
+      border-radius: 999px;
+    }
+    .stepper-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #93a0ba;
+      font-size: 14px;
+    }
+    .stepper-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      background: #eef3ff;
+      color: #97a7c5;
+      border: 1px solid #dfe7fb;
+    }
+    .stepper-item.active { color: #18233d; font-weight: 700; }
+    .stepper-item.active .stepper-dot { background: #18233d; color: #fff; border-color: #18233d; }
+    .stepper-item.done { color: #14a26a; }
+    .stepper-item.done .stepper-dot { background: #19c37d; color: #fff; border-color: #19c37d; }
+    .wizard-card {
+      background: rgba(255,255,255,0.94);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .wizard-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 18px;
+      background: linear-gradient(180deg, #f8fbff, #f2f7ff);
+      border-bottom: 1px solid #e7eefc;
+    }
+    .wizard-card-head h3 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+    .wizard-card-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .wizard-card-body {
+      padding: 20px 18px 22px;
+    }
+    .wizard-actions {
+      width: min(980px, 100%);
+      margin: 18px auto 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .score-pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #edf4ff;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .question-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .question-item strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .question-item p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .score-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .score-btn {
+      height: 72px;
+      border-radius: 14px;
+      border: 1px solid #dce6fb;
+      background: #fff;
+      cursor: pointer;
+      color: #506687;
+    }
+    .score-btn strong {
+      display: block;
+      font-size: 24px;
+      margin-bottom: 2px;
+    }
+    .score-btn span { font-size: 12px; }
+    .score-btn.active.ability-score {
+      background: linear-gradient(180deg, #1ec7f0, #04a7e7);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 16px 24px rgba(4,167,231,0.22);
+    }
+    .score-btn.active.motivation-score {
+      background: linear-gradient(180deg, #ff59b0, #ff2a81);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 16px 24px rgba(255,42,129,0.22);
+    }
+    .report-shell {
+      width: min(980px, 100%);
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .report-hero {
+      text-align: center;
+      padding: 30px 24px 24px;
+      background: rgba(255,255,255,0.94);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+    .report-avatar {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 14px;
+      border-radius: 18px;
+      background: #1f2b45;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+    }
+    .report-hero h2 {
+      margin: 0 0 8px;
+      font-size: 26px;
+    }
+    .report-hero p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .report-card {
+      background: rgba(255,255,255,0.94);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .report-card-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid #e6eefb;
+      background: linear-gradient(180deg, #f7fbff, #f2f7ff);
+      font-weight: 700;
+    }
+    .report-card-body {
+      padding: 18px 16px;
+    }
+    .feature-cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .feature-card {
+      border-radius: 18px;
+      padding: 18px 16px;
+      border: 1px solid #e5ecfb;
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+    }
+    .feature-card.score { border-color: #bfe8d3; background: linear-gradient(180deg, #f2fff8, #f8fffb); }
+    .feature-card.ability { border-color: #ffd67e; background: linear-gradient(180deg, #fffdf5, #fff8e9); }
+    .feature-card.motivation { border-color: #ffc2d8; background: linear-gradient(180deg, #fff9fc, #fff3f8); }
+    .feature-card span {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+    .feature-card strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 34px;
+      line-height: 1;
+    }
+    .feature-card.score strong { color: #12a35b; }
+    .feature-card.ability strong { color: #d07a07; }
+    .feature-card.motivation strong { color: #d46b92; }
+    .feature-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid #edf2fc;
+    }
+    .feature-tag {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #edf3ff;
+      color: #4f6897;
+      font-size: 12px;
+    }
+    .stack-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .recommend-card {
+      border: 1px solid #bdd4ff;
+      background: #f3f8ff;
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .recommend-card strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+    .reason-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      background: #fffdf7;
+      border: 1px solid #ffd67e;
+      color: #66532c;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .strategy-banner {
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #faf6ff, #f5efff);
+      border: 1px solid #e4d8ff;
+      color: #6c56b0;
+      line-height: 1.8;
+    }
+    .phase-strategy {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .phase-strategy-card {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid #d9e4fb;
+      background: #fff;
+    }
+    .phase-strategy-card.active {
+      border-color: #8eb2ff;
+      background: #f4f8ff;
+    }
+    .phase-strategy-card strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 17px;
+    }
+    .mini-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .mini-item {
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: #fff6e3;
+      color: #a56a11;
+      border: 1px solid #ffd788;
+    }
+    .plan-path {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .path-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid #dbe7fb;
+      background: #fff;
+    }
+    .path-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: #eef3ff;
+      color: var(--blue);
+      font-weight: 700;
+      flex: none;
+    }
+    .weekly-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .weekly-card {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid #e3ebfb;
+      background: #fff;
+    }
+    .weekly-card strong {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+    .weekly-card span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .system-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .system-option {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid #d7e4fb;
+      background: #f6faff;
+      cursor: pointer;
+    }
+    .system-option.active {
+      border-color: #8eb2ff;
+      background: #eef4ff;
+      box-shadow: 0 10px 20px rgba(63,109,255,0.12);
+    }
+    .system-option strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 17px;
+    }
+    .overview-screen {
+      padding: 20px 18px 30px;
+    }
+    .overview-shell {
+      width: min(1240px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .overview-side, .overview-main {
+      background: rgba(255,255,255,0.94);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+    .overview-side {
+      padding: 16px;
+      position: sticky;
+      top: 18px;
+    }
+    .overview-top {
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #643dff, #a625ff);
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .overview-top strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 24px;
+    }
+    .phase-nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .phase-nav-card {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid #d9e4fb;
+      background: #f8fbff;
+      cursor: pointer;
+    }
+    .phase-nav-card.active {
+      border-color: #8eb2ff;
+      background: #eef4ff;
+      box-shadow: 0 10px 20px rgba(63,109,255,0.12);
+    }
+    .side-btn {
+      width: 100%;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #476088;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .side-btn.primary {
+      background: linear-gradient(135deg, #3f6dff, #5c84ff);
+      color: #fff;
+      border: none;
+    }
+    .overview-main {
+      overflow: hidden;
+    }
+    .overview-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid #e6eefb;
+      background: linear-gradient(180deg, #fbfdff, #f4f8ff);
+    }
+    .overview-head h2 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+    .overview-head p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .overview-body {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .overview-card {
+      border: 1px solid #e2eafb;
+      border-radius: 20px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .overview-card-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid #edf2fc;
+      background: #f8fbff;
+      font-weight: 700;
+    }
+    .overview-card-body {
+      padding: 16px;
+    }
+    .goal-hero {
+      padding: 18px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #6b35ff, #9e27ff);
+      color: #fff;
+    }
+    .goal-hero ul {
+      margin: 10px 0 0 18px;
+      padding: 0;
+      line-height: 1.9;
+    }
+    .strategy-triplet {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .strategy-mini {
+      border-radius: 18px;
+      padding: 16px;
+      border: 1px solid #dce6fb;
+      background: #fff;
+    }
+    .strategy-mini strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 17px;
+    }
+    .course-accordion {
+      border-radius: 18px;
+      border: 1px solid #dce6fb;
+      overflow: hidden;
+      background: #fff;
+    }
+    .course-accordion-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      cursor: pointer;
+      background: #f8fbff;
+    }
+    .course-accordion-body {
+      padding: 16px;
+      border-top: 1px solid #edf2fc;
+    }
+    .course-plan-row {
+      display: grid;
+      grid-template-columns: 140px 1fr 80px;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #eef2fb;
+    }
+    .course-plan-row:last-child { border-bottom: none; }
+    .outcome-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .outcome-card {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid #ffd67e;
+      background: linear-gradient(180deg, #fffdf5, #fff8e9);
+      text-align: center;
+    }
+    .outcome-card strong {
+      display: block;
+      font-size: 34px;
+      color: #d07a07;
+      margin-bottom: 8px;
+    }
+    .parent-card {
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fff8fb, #fff3f8);
+      border: 1px solid #ffc2d8;
+    }
+    .parent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .parent-item {
+      display: flex;
+      gap: 10px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .parent-item b {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: #ff2a81;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      flex: none;
+    }
+
+    .workspace {
+      min-height: 100vh;
+      padding: 18px;
+    }
+    .workspace-shell {
+      display: grid;
+      grid-template-columns: 220px 180px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+    .workspace-shell.phase-collapsed {
+      grid-template-columns: 78px 180px 1fr;
+    }
+    .workspace-shell.lesson-collapsed {
+      grid-template-columns: 220px 78px 1fr;
+    }
+    .workspace-shell.phase-collapsed.lesson-collapsed {
+      grid-template-columns: 78px 78px 1fr;
+    }
+    .nav-card, .lesson-card, .content-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    .nav-card, .lesson-card { padding: 16px; position: sticky; top: 18px; }
+    .nav-head, .lesson-head, .content-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .nav-head h3, .lesson-head h3 { margin: 0; font-size: 18px; }
+    .toggle-collapse {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      color: #61759b;
+    }
+    .phase-list, .lesson-list { display: flex; flex-direction: column; gap: 10px; }
+    .phase-btn, .lesson-btn {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid var(--line);
+      background: #f8fbff;
+      border-radius: 16px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .phase-btn.active, .lesson-btn.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: var(--blue);
+      box-shadow: 0 10px 24px rgba(63,109,255,0.12);
+    }
+    .phase-btn strong, .lesson-btn strong { display: block; margin-bottom: 6px; font-size: 15px; }
+    .phase-btn span, .lesson-btn span { color: var(--muted); font-size: 12px; }
+    .collapsed-card .phase-list,
+    .collapsed-card .lesson-list,
+    .collapsed-card .nav-title,
+    .collapsed-card .lesson-title,
+    .collapsed-card .nav-tip,
+    .collapsed-card .lesson-tip { display: none; }
+    .collapsed-card { padding: 12px 10px; }
+    .collapsed-card .nav-head,
+    .collapsed-card .lesson-head { justify-content: center; margin-bottom: 0; }
+
+    .content-card { overflow: hidden; }
+    .content-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid #e5ecfb;
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(247,250,255,0.96));
+    }
+    .content-head h2 { margin: 0 0 6px; font-size: 24px; }
+    .content-head p { margin: 0; color: var(--muted); }
+    .content-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .mode-switch {
+      display: flex;
+      gap: 8px;
+      padding: 4px;
+      background: #f2f6ff;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+    }
+    .mode-switch button {
+      height: 38px;
+      border-radius: 12px;
+      padding: 0 16px;
+      border: none;
+      background: transparent;
+      color: #597092;
+      cursor: pointer;
+    }
+    .mode-switch button.active {
+      background: #fff;
+      color: var(--blue);
+      box-shadow: 0 8px 18px rgba(63,109,255,0.1);
+      font-weight: 700;
+    }
+    .content-body { padding: 18px; }
+    .chapter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: calc(100vh - 180px);
+      overflow: auto;
+    }
+    .chapter {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 22px;
+      overflow: hidden;
+    }
+    .chapter-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 16px 18px;
+      background: #f7fbff;
+      border-bottom: 1px solid #e6eefc;
+    }
+    .chapter-header h4 { margin: 0 0 6px; font-size: 18px; }
+    .chapter-header p { margin: 0; color: var(--muted); font-size: 13px; }
+    .chapter-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: #edf3ff;
+      color: #4a66a3;
+    }
+    .chapter-grid {
+      display: grid;
+      grid-template-columns: 210px 1fr 1fr;
+      gap: 12px;
+      padding: 14px;
+      background: linear-gradient(180deg, #fbfdff, #f4f9ff);
+    }
+    .chapter-anchor {
+      background: #e8f2ff;
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 112px;
+    }
+    .chapter-anchor strong { display: block; margin-bottom: 8px; }
+    .node-column {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid #e4ecfb;
+      border-radius: 18px;
+      padding: 14px;
+      min-height: 112px;
+    }
+    .node-column h5 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      color: #5d7399;
+    }
+    .node-list { display: flex; flex-direction: column; gap: 8px; }
+    .node {
+      padding: 11px 12px;
+      border-radius: 14px;
+      border: 1px solid #e6eefc;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+    .node-left { display: flex; flex-direction: column; gap: 4px; }
+    .node-left strong { font-size: 13px; }
+    .node-left span { color: var(--muted); font-size: 12px; }
+    .node-mark {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .mark-new { background: #e9f9f0; color: #168a54; }
+    .mark-link { background: #fff4df; color: #a56a11; }
+    .mark-core { background: #eef1ff; color: #4e5fd4; }
+
+    .graph-shell {
+      height: calc(100vh - 190px);
+      border-radius: 22px;
+      border: 1px solid #e4ecfb;
+      background:
+        radial-gradient(circle at top, rgba(87, 123, 255, 0.06), transparent 36%),
+        linear-gradient(180deg, #fbfdff, #f4f8ff);
+      position: relative;
+      overflow: auto;
+      padding: 40px 30px 80px;
+    }
+    .graph-canvas {
+      position: relative;
+      min-width: 1180px;
+      min-height: 980px;
+    }
+    .graph-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .graph-node {
+      position: absolute;
+      width: 180px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid #dfe9fb;
+      box-shadow: 0 12px 24px rgba(75, 110, 186, 0.08);
+    }
+    .graph-node h5 { margin: 0 0 6px; font-size: 14px; }
+    .graph-node p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .graph-node .node-mark { margin-top: 10px; display: inline-flex; }
+    .graph-legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #5d7399;
+      font-size: 12px;
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+    }
+    .graph-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .graph-metrics {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .graph-metric {
+      min-width: 108px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: #f8fbff;
+      border: 1px solid #e1eafc;
+    }
+    .graph-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .graph-metric strong { font-size: 16px; }
+    .graph-tools {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .graph-tool-btn {
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #54709b;
+      cursor: pointer;
+    }
+    .graph-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 14px;
+      align-items: start;
+    }
+    .graph-board {
+      border-radius: 22px;
+      border: 1px solid #e4ecfb;
+      background:
+        radial-gradient(circle at top, rgba(87, 123, 255, 0.06), transparent 36%),
+        linear-gradient(180deg, #fbfdff, #f4f8ff);
+      overflow: auto;
+      height: calc(100vh - 250px);
+      padding: 20px;
+      position: relative;
+    }
+    .graph-stage {
+      transform-origin: 0 0;
+      transition: transform 0.2s ease;
+      min-width: 1500px;
+      min-height: 1100px;
+      position: relative;
+    }
+    .graph-edge {
+      stroke: #c2d0f8;
+      stroke-width: 3;
+      fill: none;
+      stroke-linecap: round;
+    }
+    .graph-edge.dependency {
+      stroke-dasharray: 7 7;
+      stroke: #93a9e8;
+      stroke-width: 2.5;
+    }
+    .graph-edge.weak { opacity: 0.12; }
+    .graph-node.chapter { width: 220px; border-radius: 24px; background: linear-gradient(135deg, #3f6dff, #5c84ff); color: #fff; border: none; }
+    .graph-node.chapter p { color: rgba(255,255,255,0.82); }
+    .graph-node.section { width: 190px; border-radius: 22px; background: #eef4ff; }
+    .graph-node.unit { width: 178px; border-radius: 999px; background: #f2fbff; }
+    .graph-node.module { width: 190px; border-radius: 18px; background: #fff; }
+    .graph-node.selected {
+      box-shadow: 0 0 0 3px rgba(63,109,255,0.18), 0 16px 28px rgba(63,109,255,0.16);
+      border-color: #9cb5ff;
+      z-index: 4;
+    }
+    .graph-node.dimmed { opacity: 0.22; }
+    .graph-node.off,
+    .graph-node.blocked {
+      background: #f3f5f9;
+      border-color: #d6dce8;
+      color: #7f8ca7;
+    }
+    .graph-node.chapter.off,
+    .graph-node.chapter.blocked {
+      background: linear-gradient(135deg, #c6cfdf, #b6c1d6);
+      color: #fff;
+    }
+    .graph-node.off p,
+    .graph-node.blocked p { color: #96a0b5; }
+    .graph-node .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 11px;
+      color: #6e80a3;
+    }
+    .graph-node.chapter .status-row { color: rgba(255,255,255,0.88); }
+    .shape-chapter { clip-path: polygon(0 0, 100% 0, 100% 84%, 94% 100%, 0 100%); }
+    .shape-section { clip-path: polygon(8% 0, 100% 0, 100% 100%, 8% 100%, 0 50%); }
+    .shape-unit { clip-path: ellipse(50% 50% at 50% 50%); }
+    .node-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .resource-strip {
+      margin-top: 8px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .resource-badge {
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #f3f6fc;
+      color: #617599;
+      border: 1px solid #e3eaf8;
+    }
+    .node-status {
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .status-done { background: #e9f9f0; color: #168a54; }
+    .status-progress { background: #eef3ff; color: #4966d3; }
+    .status-pending { background: #f5f7fb; color: #7584a1; }
+    .status-low { background: #fff4df; color: #a56a11; }
+    .status-off { background: #eef1f6; color: #7d879b; }
+    .graph-side {
+      border: 1px solid #e4ecfb;
+      background: linear-gradient(180deg, #fcfdff, #f7faff);
+      border-radius: 22px;
+      padding: 16px;
+      min-height: calc(100vh - 250px);
+      position: sticky;
+      top: 20px;
+    }
+    .side-section { margin-bottom: 16px; }
+    .side-section h4 {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+    .side-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .side-metric {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: #fff;
+      border: 1px solid #e5ecfb;
+    }
+    .side-metric span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+    .side-metric strong { font-size: 15px; }
+    .detail-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .detail-table td {
+      border-bottom: 1px solid #e9eefb;
+      padding: 8px 0;
+      vertical-align: top;
+    }
+    .detail-table td:first-child { width: 78px; color: var(--muted); }
+    .detail-table tr:last-child td { border-bottom: none; }
+    .related-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .related-item {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: #fff;
+      border: 1px solid #e6edfb;
+      font-size: 12px;
+    }
+    .inline-edit {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 14px;
+      border: 1px solid #dbe7fb;
+      background: #fff;
+    }
+    .side-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .toast {
+      position: fixed;
+      right: 28px;
+      bottom: 28px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: rgba(30,43,69,0.92);
+      color: #fff;
+      font-size: 13px;
+      box-shadow: 0 16px 32px rgba(17,25,40,0.2);
+      z-index: 40;
+    }
+    .graph-tooltip {
+      position: fixed;
+      z-index: 60;
+      min-width: 220px;
+      max-width: 320px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(28,38,63,0.96);
+      color: #fff;
+      font-size: 12px;
+      line-height: 1.7;
+      pointer-events: none;
+      box-shadow: 0 18px 42px rgba(16, 24, 40, 0.22);
+    }
+    .graph-tooltip strong { display: block; margin-bottom: 6px; font-size: 13px; }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      padding: 28px;
+      background: rgba(25, 37, 67, 0.24);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+    .overlay.hidden { display: none; }
+    .modal {
+      width: min(1080px, 100%);
+      max-height: calc(100vh - 56px);
+      overflow: auto;
+      padding: 24px;
+      border-radius: 28px;
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: 0 32px 80px rgba(43, 67, 123, 0.24);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    .modal-header h3 { margin: 0 0 8px; font-size: 24px; }
+    .modal-header p { margin: 0; color: var(--muted); }
+    .close-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+    }
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 1400px) {
+      .workspace-shell,
+      .workspace-shell.phase-collapsed,
+      .workspace-shell.lesson-collapsed,
+      .workspace-shell.phase-collapsed.lesson-collapsed {
+        grid-template-columns: 1fr;
+      }
+      .nav-card, .lesson-card { position: static; }
+      .chapter-grid { grid-template-columns: 1fr; }
+      .graph-layout { grid-template-columns: 1fr; }
+      .graph-side { min-height: auto; position: static; }
+      .overview-shell { grid-template-columns: 1fr; }
+      .strategy-triplet, .feature-cards, .outcome-grid, .weekly-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 1100px) {
+      .plan-shell { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .hero-card { padding: 36px 24px; }
+      .hero-card h1 { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <section class="screen hero" id="entryScreen">
+    <div class="hero-card">
+      <h1>个性化学习内容生成器</h1>
+      <p>先生成一份可编辑的学习规划，再进入双模式地图页查看内容结构。支持阶段导航、课次收起、列表浏览与知识图谱浏览。</p>
+      <button class="primary-btn" id="startPlan">生成个性化学习内容</button>
+      <div class="hero-tags">
+        <span class="hero-tag">支持规划设计回看与修改</span>
+        <span class="hero-tag">支持双阶段规划</span>
+        <span class="hero-tag">支持列表 / 知识图谱双模式</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen wizard-screen hidden" id="planScreen">
+    <div class="wizard-shell" id="wizardStep1">
+      <div class="wizard-header">
+        <h2>学生信息与能力评估</h2>
+        <p>请填写学生基础信息，完成学习能力和意愿评估</p>
+      </div>
+      <div class="stepper">
+        <div class="stepper-item active"><span class="stepper-dot">1</span><span>基础信息</span></div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item"><span class="stepper-dot">2</span><span>学习能力</span></div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item"><span class="stepper-dot">3</span><span>学习意愿</span></div>
+      </div>
+      <div class="wizard-card">
+        <div class="wizard-card-head">
+          <div>
+            <h3>学生基础信息</h3>
+            <p>请填写学生的基本信息</p>
+          </div>
+        </div>
+        <div class="wizard-card-body">
+          <div class="field">
+            <label>学生姓名 *</label>
+            <input class="input" id="studentName" value="王娟娟" />
+          </div>
+          <div class="field">
+            <label>最近考试成绩</label>
+            <input class="input" id="recentScore" type="number" value="100" />
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>年级 *</label>
+              <select class="select" id="gradeSelect">
+                <option>二年级</option>
+                <option>三年级</option>
+                <option selected>七年级</option>
+                <option>八年级</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>教材版本 *</label>
+              <select class="select" id="editionSelect">
+                <option selected>人教版</option>
+                <option>北师版</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>学科 *</label>
+              <select class="select" id="subjectSelect">
+                <option selected>数学</option>
+                <option>语文</option>
+                <option>英语</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>时期 *</label>
+              <select class="select" id="termSelect">
+                <option>寒假</option>
+                <option selected>春季学期</option>
+                <option>暑假</option>
+                <option>秋季学期</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="wizard-actions">
+        <button class="secondary-btn" id="backEntry">返回</button>
+        <button class="primary-btn" id="toAbilityStep">下一步 →</button>
+      </div>
+    </div>
+
+    <div class="wizard-shell hidden" id="wizardStep2">
+      <div class="wizard-header">
+        <h2>学生信息与评估</h2>
+        <p>请填写学生基础信息并进行能力与意愿评估</p>
+      </div>
+      <div class="stepper">
+        <div class="stepper-item done"><span class="stepper-dot">✓</span><span>基础信息</span></div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item active"><span class="stepper-dot">2</span><span>学习能力</span></div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item"><span class="stepper-dot">3</span><span>学习意愿</span></div>
+      </div>
+      <div class="wizard-card">
+        <div class="wizard-card-head">
+          <div>
+            <h3>学习能力评估</h3>
+            <p>评估学生的学习能力和方法掌握程度</p>
+          </div>
+          <span class="score-pill" id="abilityAvg">平均 3.0 分</span>
+        </div>
+        <div class="wizard-card-body">
+          <div class="question-list" id="abilityQuestionList"></div>
+        </div>
+      </div>
+      <div class="wizard-actions">
+        <button class="secondary-btn" id="backToBasic">← 上一步</button>
+        <button class="primary-btn" id="toMotivationStep">下一步 →</button>
+      </div>
+    </div>
+
+    <div class="wizard-shell hidden" id="wizardStep3">
+      <div class="wizard-header">
+        <h2>学生信息与评估</h2>
+        <p>请填写学生基础信息并进行能力与意愿评估</p>
+      </div>
+      <div class="stepper">
+        <div class="stepper-item done"><span class="stepper-dot">✓</span><span>基础信息</span></div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item done"><span class="stepper-dot">✓</span><span>学习能力</span></div>
+        <div class="stepper-line"></div>
+        <div class="stepper-item active"><span class="stepper-dot">3</span><span>学习意愿</span></div>
+      </div>
+      <div class="wizard-card">
+        <div class="wizard-card-head">
+          <div>
+            <h3>学习意愿评估</h3>
+            <p>评估学生的学习主动性和兴趣程度</p>
+          </div>
+          <span class="score-pill" id="motivationAvg">平均 3.0 分</span>
+        </div>
+        <div class="wizard-card-body">
+          <div class="question-list" id="motivationQuestionList"></div>
+        </div>
+      </div>
+      <div class="wizard-actions">
+        <button class="secondary-btn" id="backToAbility">← 上一步</button>
+        <button class="primary-btn" id="generatePortrait">生成学习画像 →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen wizard-screen hidden" id="reportScreen">
+    <div class="report-shell">
+      <div class="report-hero">
+        <div class="report-avatar">◔</div>
+        <h2><span id="reportStudentName">王娟娟</span> 的学习画像</h2>
+        <p>基于学生信息和特征分析生成</p>
+      </div>
+
+      <div class="report-card">
+        <div class="report-card-head">学生特征分析</div>
+        <div class="report-card-body">
+          <div class="feature-cards">
+            <div class="feature-card score">
+              <span>学习成绩</span>
+              <strong id="reportScoreLevel">优秀</strong>
+              <div class="feature-tag" id="reportScoreValue">100分</div>
+            </div>
+            <div class="feature-card ability">
+              <span>学习能力</span>
+              <strong id="reportAbilityLevel">中等</strong>
+              <div class="feature-tag" id="reportAbilityValue">3.0分 / 5分</div>
+            </div>
+            <div class="feature-card motivation">
+              <span>学习意愿</span>
+              <strong id="reportMotivationLevel">中等</strong>
+              <div class="feature-tag" id="reportMotivationValue">3.0分 / 5分</div>
+            </div>
+          </div>
+          <div class="feature-tags" id="reportPortraitTags"></div>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <div class="report-card-head">学习体系推荐</div>
+        <div class="report-card-body">
+          <div class="system-options" id="systemOptions">
+            <div class="system-option active" data-system="校内同步（含浅奥）">
+              <strong>校内同步（含浅奥） <span class="feature-tag" style="margin-left:8px;">推荐</span></strong>
+              <div class="hint">以校内课程为主，适当拓展奥数思维，帮助学生校内成绩领先</div>
+              <div class="reason-box" id="recommendReason"></div>
+            </div>
+            <div class="system-option" data-system="同步提升（主线强化）">
+              <strong>同步提升（主线强化）</strong>
+              <div class="hint">聚焦校内主线与关键题型，优先稳住成绩和课堂同步。</div>
+            </div>
+            <div class="system-option" data-system="寒暑衔接（提前预习）">
+              <strong>寒暑衔接（提前预习）</strong>
+              <div class="hint">适合假期阶段，提前学习新学期重点，建立优势。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <div class="report-card-head">策略设计逻辑</div>
+        <div class="report-card-body">
+          <div class="strategy-banner" id="reportStrategyLogic"></div>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <div class="report-card-head">阶段学习策略</div>
+        <div class="report-card-body">
+          <div class="phase-strategy">
+            <div class="phase-strategy-card active">
+              <strong>寒暑阶段 <span class="feature-tag">当前阶段</span></strong>
+              <div class="hint" id="phaseStrategy1"></div>
+            </div>
+            <div class="phase-strategy-card">
+              <strong>春季学期阶段</strong>
+              <div class="hint" id="phaseStrategy2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <div class="report-card-head">学习内容概览</div>
+        <div class="report-card-body">
+          <div style="margin-bottom:14px;">
+            <strong style="display:block; margin-bottom:8px;">主要章节</strong>
+            <div class="mini-list">
+              <span class="mini-item">长方体</span>
+              <span class="mini-item">100以内加减法</span>
+              <span class="mini-item">表内乘法</span>
+            </div>
+          </div>
+          <div style="margin-bottom:14px;">
+            <strong style="display:block; margin-bottom:8px;">关键要点</strong>
+            <div class="mini-list">
+              <span class="mini-item">提前预习</span>
+              <span class="mini-item">测学结合</span>
+              <span class="mini-item">定期薄弱梳理</span>
+              <span class="mini-item">做题卷复习</span>
+            </div>
+          </div>
+          <div>
+            <strong style="display:block; margin-bottom:8px;">重点方向</strong>
+            <div class="mini-list">
+              <span class="mini-item" style="background:#f3ecff;color:#7d4dff;border-color:#d9c5ff;">能力提升</span>
+              <span class="mini-item" style="background:#f3ecff;color:#7d4dff;border-color:#d9c5ff;">综合应用</span>
+              <span class="mini-item" style="background:#f3ecff;color:#7d4dff;border-color:#d9c5ff;">方法总结</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <div class="report-card-head">学习规划建议</div>
+        <div class="report-card-body">
+          <div class="plan-path">
+            <div class="path-card"><div class="path-num">1</div><div><strong>寒假阶段</strong><div class="hint">拓展拔高，提前预习下学期重点</div></div></div>
+            <div class="path-card"><div class="path-num">2</div><div><strong>春季学期阶段</strong><div class="hint">系统复习 + 能力提升</div></div></div>
+            <div class="path-card"><div class="path-num">3</div><div><strong>长期目标</strong><div class="hint">建立完整知识体系，养成自主学习习惯</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <div class="report-card-head">每周学习建议</div>
+        <div class="report-card-body">
+          <div class="weekly-grid">
+            <div class="weekly-card"><strong><span>周一至周三</span><span>45-60分钟</span></strong><span>学习新内容，重点理解概念</span></div>
+            <div class="weekly-card"><strong><span>周四</span><span>30-45分钟</span></strong><span>完成课后作业，巩固知识点</span></div>
+            <div class="weekly-card"><strong><span>周五</span><span>30-45分钟</span></strong><span>错题订正，查漏补缺</span></div>
+            <div class="weekly-card"><strong><span>周末</span><span>60分钟</span></strong><span>阶段复习，整理笔记</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <div class="report-card-head">练习与复习计划</div>
+        <div class="report-card-body">
+          <div class="stack-cards">
+            <div class="recommend-card"><strong>课后练习</strong><div class="hint">完成课后习题，重点挑战拓展题和思考题</div></div>
+            <div class="recommend-card"><strong>错题管理</strong><div class="hint">家长协助整理错题，每周复习一次</div></div>
+            <div class="recommend-card"><strong>阶段复习</strong><div class="hint">每完成一个单元进行阶段测试，查漏补缺</div></div>
+            <div class="recommend-card"><strong>期中期末</strong><div class="hint">考前 2 周开始系统复习，做模拟试卷，重点突破薄弱环节</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <div class="report-card-head">预期成果</div>
+        <div class="report-card-body">
+          <div class="outcome-grid">
+            <div class="outcome-card"><strong>95分+</strong><div>知识掌握</div><div class="hint">掌握本学期全部知识点，形成奥数思维</div></div>
+            <div class="outcome-card"><strong>独立完成</strong><div>能力提升</div><div class="hint">建立自主学习能力，养成反思习惯</div></div>
+            <div class="outcome-card"><strong>班级前列</strong><div>成绩目标</div><div class="hint">稳定优秀成绩，冲刺更高目标</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-card">
+        <div class="report-card-head">给家长的建议</div>
+        <div class="report-card-body">
+          <div class="parent-card">
+            <div class="parent-list">
+              <div class="parent-item"><b>1</b><div><strong>适度陪伴</strong><div class="hint">保持一定的学习陪伴，但逐步培养独立学习习惯</div></div></div>
+              <div class="parent-item"><b>2</b><div><strong>设立目标</strong><div class="hint">和孩子一起制定小目标，完成后给予适当奖励</div></div></div>
+              <div class="parent-item"><b>3</b><div><strong>关注情绪</strong><div class="hint">注意观察孩子学习状态，及时给予负面情绪疏导</div></div></div>
+            </div>
+            <div class="reason-box" style="margin-top:14px;">温馨提示：每个孩子都是独特的，以上建议仅供参考，请根据孩子的实际情况灵活调整。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-actions">
+        <button class="secondary-btn" id="restartWizard">重新评估</button>
+        <button class="primary-btn" id="enterOverview">查看学习规划 →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen overview-screen hidden" id="overviewScreen">
+    <div class="overview-shell">
+      <aside class="overview-side">
+        <div class="overview-top">
+          <strong id="overviewTitle">1 王娟娟 的学习规划</strong>
+          <div class="hint" style="color:rgba(255,255,255,0.84);" id="overviewMeta">成绩优秀 · 能力中 · 意愿中 · 校内同步（含浅奥）</div>
+        </div>
+        <div class="phase-nav-list" id="overviewPhaseNav"></div>
+        <button class="side-btn primary" id="goToMap">生成学习规划</button>
+        <button class="side-btn" id="sharePlan">分享规划</button>
+        <button class="side-btn" id="resetPlan">重新规划</button>
+      </aside>
+
+      <main class="overview-main">
+        <div class="overview-head">
+          <h2 id="overviewPhaseTitle">春季同步校内</h2>
+          <p id="overviewPhaseMeta">包含 3月-7月 ｜ 中共 15 次课</p>
+        </div>
+        <div class="overview-body">
+          <section class="overview-card">
+            <div class="overview-card-head">阶段目标</div>
+            <div class="overview-card-body">
+              <div class="goal-hero" id="overviewGoalHero"></div>
+            </div>
+          </section>
+
+          <section class="overview-card">
+            <div class="overview-card-head">策略设计</div>
+            <div class="overview-card-body">
+              <div class="strategy-triplet" id="overviewStrategies"></div>
+            </div>
+          </section>
+
+          <section class="overview-card">
+            <div class="overview-card-head">课次安排</div>
+            <div class="overview-card-body">
+              <div class="course-accordion">
+                <div class="course-accordion-head" id="toggleCourseAccordion">
+                  <strong id="courseAccordionTitle">课次安排 · 共 15 次</strong>
+                  <span id="courseAccordionIcon">⌄</span>
+                </div>
+                <div class="course-accordion-body hidden" id="courseAccordionBody"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section class="screen workspace hidden" id="workspaceScreen">
+    <div class="workspace-shell" id="workspaceShell">
+      <aside class="nav-card" id="phaseCard">
+        <div class="nav-head">
+          <div>
+            <h3 class="nav-title">规划阶段</h3>
+            <div class="hint nav-tip">左侧切换规划的两个阶段</div>
+          </div>
+          <button class="toggle-collapse" id="togglePhase">⇤</button>
+        </div>
+        <div class="phase-list" id="phaseList"></div>
+      </aside>
+
+      <aside class="lesson-card" id="lessonCard">
+        <div class="lesson-head">
+          <div>
+            <h3 class="lesson-title">课次</h3>
+            <div class="hint lesson-tip">按阶段查看课次拆分</div>
+          </div>
+          <button class="toggle-collapse" id="toggleLesson">⇡</button>
+        </div>
+        <div class="lesson-list" id="lessonList"></div>
+      </aside>
+
+      <main class="content-card">
+        <div class="content-head">
+          <div>
+            <h2 id="mapTitle">数学 · 七年级下册个性化地图</h2>
+            <p id="mapSubtitle">当前显示：阶段一 · 基础夯实 · 第1次课</p>
+          </div>
+          <div class="content-actions">
+            <div class="mode-switch">
+              <button class="active" data-view-mode="list">列表模式</button>
+              <button data-view-mode="graph">知识图谱</button>
+            </div>
+            <button class="secondary-btn" id="openPlanDesign">调整学生画像</button>
+          </div>
+        </div>
+        <div class="content-body">
+          <div id="listMode"></div>
+          <div id="graphMode" class="hidden"></div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <div class="overlay hidden" id="designOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h3>规划设计</h3>
+          <p>这里展示刚刚生成的学习规划，可直接修改并重新应用到地图页。</p>
+        </div>
+        <button class="close-btn" id="closePlanDesign">✕</button>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel" style="padding:18px;">
+          <div class="field">
+            <label>学习成绩</label>
+            <div class="choice-row" id="designScoreChoices">
+              <button class="choice-btn active" data-score="95分以上">95分以上</button>
+              <button class="choice-btn" data-score="70-94分">70-94分</button>
+              <button class="choice-btn" data-score="70分以下">70分以下</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>学习能力</label>
+            <div class="choice-row" id="designAbilityChoices">
+              <button class="choice-btn" data-ability="高">能力强</button>
+              <button class="choice-btn active" data-ability="中">能力中</button>
+              <button class="choice-btn" data-ability="低">能力弱</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>学习意愿</label>
+            <div class="choice-row" id="designMotivationChoices">
+              <button class="choice-btn" data-motivation="高">意愿高</button>
+              <button class="choice-btn active" data-motivation="中">意愿中</button>
+              <button class="choice-btn" data-motivation="低">意愿低</button>
+            </div>
+          </div>
+          <div class="field grid-2">
+            <div>
+              <label>学习目标</label>
+              <select class="select" id="designGoalSelect">
+                <option>领先校内</option>
+                <option selected>同步提升</option>
+              </select>
+            </div>
+            <div>
+              <label>校内进度</label>
+              <select class="select" id="designProgressSelect">
+                <option>第2章 相交线与平行线</option>
+                <option selected>第3章 三角形</option>
+                <option>第4章 轴对称与平移</option>
+                <option>第5章 数据的整理与表示</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="secondary-btn" id="cancelPlanDesign">取消</button>
+            <button class="primary-btn" id="applyPlanDesign">应用修改</button>
+          </div>
+        </div>
+        <div class="panel" style="padding:18px;">
+          <div class="preview-block">
+            <h3>当前规划</h3>
+            <div class="tag-list" id="designPreviewTags"></div>
+          </div>
+          <div class="preview-block" style="margin-top:14px;">
+            <h3>阶段结构</h3>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>阶段</th>
+                  <th>内容</th>
+                  <th>课次</th>
+                </tr>
+              </thead>
+              <tbody id="designPhaseTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var chapterMaster = [
+        {
+          title: "第1章 整式的运算",
+          subtitle: "围绕整式化简与同类项展开基础夯实",
+          anchor: "认知增量锚：同类项、去括号、整式加减",
+          focus: "认知增量",
+          basis: [
+            { name: "同类项辨析", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "合并同类项", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "去括号与添括号", kind: "认知增量", level: "基础", importance: "高" }
+          ],
+          advanced: [
+            { name: "整式化简综合", kind: "融会贯通", level: "进阶", importance: "高" },
+            { name: "整式应用题", kind: "融会贯通", level: "进阶", importance: "中" }
+          ],
+          graph: { x: 60, y: 70 }
+        },
+        {
+          title: "第2章 相交线与平行线",
+          subtitle: "对齐截图结构，包含位置关系、平行线性质与作图",
+          anchor: "认知增量锚：同位角、内错角、垂线、平行线判定",
+          focus: "认知增量",
+          basis: [
+            { name: "两条直线的位置关系", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "探究直线平行的条件", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "平行线的性质", kind: "认知增量", level: "基础", importance: "高" }
+          ],
+          advanced: [
+            { name: "平行线性质综合", kind: "融会贯通", level: "进阶", importance: "高" },
+            { name: "平行线中的图模", kind: "融会贯通", level: "拔高", importance: "中" }
+          ],
+          graph: { x: 360, y: 130 }
+        },
+        {
+          title: "第3章 三角形",
+          subtitle: "聚焦三角形边角关系与全等推理",
+          anchor: "认知增量锚：三角形分类、角和、边角关系",
+          focus: "认知增量",
+          basis: [
+            { name: "三角形的概念与分类", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "三角形内角和", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "三角形三边关系", kind: "认知增量", level: "基础", importance: "高" }
+          ],
+          advanced: [
+            { name: "全等三角形判定", kind: "融会贯通", level: "进阶", importance: "高" },
+            { name: "三角形综合证明", kind: "融会贯通", level: "拔高", importance: "高" }
+          ],
+          graph: { x: 700, y: 90 }
+        },
+        {
+          title: "第4章 轴对称与平移",
+          subtitle: "从图形变化到作图，建立空间直观",
+          anchor: "认知增量锚：轴对称概念、平移特征、作图",
+          focus: "认知增量",
+          basis: [
+            { name: "轴对称图形", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "平移的性质", kind: "认知增量", level: "基础", importance: "中" },
+            { name: "轴对称作图", kind: "认知增量", level: "基础", importance: "高" }
+          ],
+          advanced: [
+            { name: "图形变化综合", kind: "融会贯通", level: "进阶", importance: "中" },
+            { name: "对称平移组合题", kind: "融会贯通", level: "拔高", importance: "中" }
+          ],
+          graph: { x: 1020, y: 150 }
+        },
+        {
+          title: "第5章 数据的整理与表示",
+          subtitle: "从统计表到条形图、扇形图的表达",
+          anchor: "认知增量锚：收集数据、整理分类、绘制统计图",
+          focus: "认知增量",
+          basis: [
+            { name: "统计调查过程", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "频数表与条形图", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "扇形图读取", kind: "认知增量", level: "基础", importance: "中" }
+          ],
+          advanced: [
+            { name: "统计图综合分析", kind: "融会贯通", level: "进阶", importance: "高" },
+            { name: "数据结论表达", kind: "融会贯通", level: "进阶", importance: "中" }
+          ],
+          graph: { x: 170, y: 420 }
+        },
+        {
+          title: "第6章 长方形与正方形",
+          subtitle: "参考 Excel 的知识结构拆分边角特征与周长",
+          anchor: "认知增量锚：认识多边形、四边形、长正方形特征",
+          focus: "认知增量",
+          basis: [
+            { name: "认识多边形", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "长方形和正方形特征", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "周长的认识", kind: "认知增量", level: "基础", importance: "高" }
+          ],
+          advanced: [
+            { name: "长方形中有多少个正方形", kind: "融会贯通", level: "进阶", importance: "高" },
+            { name: "周长综合辨析", kind: "融会贯通", level: "进阶", importance: "高" }
+          ],
+          graph: { x: 480, y: 500 }
+        },
+        {
+          title: "第7章 分式与方程",
+          subtitle: "承接代数推理，强化模型建立",
+          anchor: "认知增量锚：分式概念、约分、解分式方程",
+          focus: "认知增量",
+          basis: [
+            { name: "分式的概念", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "约分与通分", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "解分式方程", kind: "认知增量", level: "进阶", importance: "高" }
+          ],
+          advanced: [
+            { name: "分式方程应用", kind: "融会贯通", level: "进阶", importance: "高" },
+            { name: "代数模型综合", kind: "融会贯通", level: "拔高", importance: "中" }
+          ],
+          graph: { x: 800, y: 430 }
+        },
+        {
+          title: "第8章 概率初步",
+          subtitle: "围绕可能性、频率与简单概率开展提升",
+          anchor: "认知增量锚：随机事件、频率、概率模型",
+          focus: "认知增量",
+          basis: [
+            { name: "感受可能性", kind: "认知增量", level: "基础", importance: "高" },
+            { name: "频率的意义", kind: "认知增量", level: "基础", importance: "中" },
+            { name: "简单概率计算", kind: "认知增量", level: "基础", importance: "高" }
+          ],
+          advanced: [
+            { name: "概率实验设计", kind: "融会贯通", level: "进阶", importance: "中" },
+            { name: "统计与概率综合", kind: "融会贯通", level: "拔高", importance: "中" }
+          ],
+          graph: { x: 1080, y: 470 }
+        }
+      ];
+
+      var state = {
+        studentName: "王娟娟",
+        recentScore: 100,
+        grade: "七年级",
+        subject: "数学",
+        edition: "人教版",
+        term: "春季学期",
+        system: "校内同步（含浅奥）",
+        score: "95分以上",
+        ability: "中",
+        motivation: "中",
+        goal: "同步提升",
+        progress: "第3章 三角形",
+        wizardStep: 1,
+        overviewPhaseIndex: 0,
+        courseAccordionOpen: false,
+        isAdjustingProfile: false,
+        abilityAnswers: [4, 3, 3, 3, 3],
+        motivationAnswers: [3, 3, 3, 3, 3],
+        currentPhaseId: "phase1",
+        currentLessonId: "p1-l1",
+        viewMode: "list",
+        phaseCollapsed: false,
+        lessonCollapsed: false,
+        graphScale: 1,
+        expandedChapterId: null,
+        selectedGraphNodeId: null,
+        graphOverrides: {},
+        graphAliases: {}
+      };
+
+      var abilityQuestions = [
+        ["我知道自己什么时候理解了，什么时候没理解。", "能够准确判断自己的理解程度"],
+        ["学习时，我会问自己：我懂了吗？", "会主动反思和确认自己的学习状态"],
+        ["遇到难题，我会停下来想一想。", "面对困难时有思考和解决问题的意识"],
+        ["我会检查自己的作业有没有错。", "有自我检查和纠错的习惯"],
+        ["我知道用什么方法能让自己记得更牢。", "了解并运用适合自己的记忆方法"]
+      ];
+
+      var motivationQuestions = [
+        ["遇到不会的题目，愿意自己先尝试思考，而不是立刻问答案。", "主动思考，不依赖答案"],
+        ["面对困难时，愿意再试几次，而不是说“我不行”。", "面对困难有坚持的意愿"],
+        ["做错题目后，愿意主动订正并搞懂为什么错。", "愿意从错误中学习"],
+        ["学习是为了自己想进步，而不是为了爸妈。", "学习动力源于内在需求"],
+        ["愿意主动预习或复习功课。", "有主动学习的意识"]
+      ];
+
+      function average(arr) {
+        return arr.reduce(function (sum, item) { return sum + item; }, 0) / arr.length;
+      }
+
+      function scoreLevel(score) {
+        if (score >= 95) return "优秀";
+        if (score >= 70) return "良好";
+        return "待提升";
+      }
+
+      function abilityLevel(avg) {
+        if (avg >= 4) return "优秀";
+        if (avg >= 2.8) return "中等";
+        return "较弱";
+      }
+
+      function tagLevel(avg) {
+        if (avg >= 4) return "高";
+        if (avg >= 2.8) return "中";
+        return "低";
+      }
+
+      function syncLabelsFromAnswers() {
+        state.recentScore = Number(document.getElementById("recentScore").value || 0);
+        state.studentName = document.getElementById("studentName").value || "王娟娟";
+        state.grade = document.getElementById("gradeSelect").value;
+        state.subject = document.getElementById("subjectSelect").value;
+        state.edition = document.getElementById("editionSelect").value;
+        state.term = document.getElementById("termSelect").value;
+        state.score = state.recentScore >= 95 ? "95分以上" : (state.recentScore >= 70 ? "70-94分" : "70分以下");
+        state.ability = tagLevel(average(state.abilityAnswers));
+        state.motivation = tagLevel(average(state.motivationAnswers));
+      }
+
+      function showWizardStep(step) {
+        state.wizardStep = step;
+        document.getElementById("wizardStep1").classList.toggle("hidden", step !== 1);
+        document.getElementById("wizardStep2").classList.toggle("hidden", step !== 2);
+        document.getElementById("wizardStep3").classList.toggle("hidden", step !== 3);
+      }
+
+      function renderQuestionList(containerId, questions, answers, variant) {
+        document.getElementById(containerId).innerHTML = questions.map(function (item, qIndex) {
+          return '<div class="question-item">' +
+            '<strong>' + item[0] + '</strong>' +
+            '<p>' + item[1] + '</p>' +
+            '<div class="score-row">' +
+              [1,2,3,4,5].map(function (score) {
+                return '<button class="score-btn ' + (answers[qIndex] === score ? ('active ' + variant + '-score') : '') + '" data-score-group="' + variant + '" data-score-index="' + qIndex + '" data-score-value="' + score + '"><strong>' + score + '</strong><span>分</span></button>';
+              }).join('') +
+            '</div>' +
+          '</div>';
+        }).join('');
+      }
+
+      function renderWizardScores() {
+        document.getElementById("abilityAvg").textContent = "平均 " + average(state.abilityAnswers).toFixed(1) + " 分";
+        document.getElementById("motivationAvg").textContent = "平均 " + average(state.motivationAnswers).toFixed(1) + " 分";
+      }
+
+      function generatePlanData() {
+        var phaseOneChapters = chapterMaster.slice(0, 4);
+        var phaseTwoChapters = chapterMaster.slice(4, 8);
+
+        function lessonText(item, index) {
+          var basisCount = item.basis.length;
+          var extra = state.score === "95分以上" ? 2 : (state.score === "70分以下" ? 0 : 1);
+          return "待学" + (basisCount + extra) + "知识点";
+        }
+
+        var phaseOneLessons = phaseOneChapters.map(function (item, index) {
+          return {
+            id: "p1-l" + (index + 1),
+            title: "第" + (index + 1) + "次课",
+            summary: lessonText(item, index),
+            chapter: item
+          };
+        });
+
+        var phaseTwoLessons = phaseTwoChapters.map(function (item, index) {
+          return {
+            id: "p2-l" + (index + 1),
+            title: "第" + (index + 5) + "次课",
+            summary: lessonText(item, index + 4),
+            chapter: item
+          };
+        });
+
+        return [
+          {
+            id: "phase1",
+            name: "阶段一",
+            subtitle: state.goal === "领先校内" ? "核心主线提前覆盖" : "基础夯实与同步衔接",
+            chapters: phaseOneChapters,
+            lessons: phaseOneLessons
+          },
+          {
+            id: "phase2",
+            name: "阶段二",
+            subtitle: state.goal === "领先校内" ? "进阶拔高与图模拓展" : "进阶提升与重点突破",
+            chapters: phaseTwoChapters,
+            lessons: phaseTwoLessons
+          }
+        ];
+      }
+
+      function strategyRows() {
+        var range = state.score === "95分以上"
+          ? "主线内容 + 拓展内容"
+          : (state.score === "70分以下" ? "基础内容优先" : "主线内容为主，少量拓展");
+        var learning = state.ability === "高"
+          ? "题型类内容优先测学，能过则跳过重复讲解"
+          : (state.ability === "低" ? "题型类内容先学后练，降低理解门槛" : "题型类内容先学后测");
+        var practice = state.motivation === "高"
+          ? "练习覆盖重点题 + 拓展题，全量测学"
+          : (state.motivation === "低" ? "练习只保留重点题与错题回流" : "练习聚焦重点题与典型错题");
+        return [
+          ["学习范围", range],
+          ["学习方式", learning],
+          ["练习节奏", practice]
+        ];
+      }
+
+      function currentPlan() {
+        return generatePlanData();
+      }
+
+      function currentPhase() {
+        return currentPlan().find(function (item) { return item.id === state.currentPhaseId; }) || currentPlan()[0];
+      }
+
+      function currentLesson() {
+        var lessons = currentPhase().lessons;
+        return lessons.find(function (item) { return item.id === state.currentLessonId; }) || lessons[0];
+      }
+
+      function setActive(containerId, attr, value) {
+        document.querySelectorAll(containerId + " [" + attr + "]").forEach(function (btn) {
+          btn.classList.toggle("active", btn.getAttribute(attr) === value);
+        });
+      }
+
+      function bindChoiceGroup(containerId, attr, key) {
+        document.querySelectorAll(containerId + " [" + attr + "]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            state[key] = btn.getAttribute(attr);
+            setActive(containerId, attr, state[key]);
+            renderDesignPreview();
+          });
+        });
+      }
+
+      function renderPlanPreview() {
+        syncLabelsFromAnswers();
+      }
+
+      function renderDesignPreview() {
+        var tags = [
+          state.score,
+          "能力" + state.ability,
+          "意愿" + state.motivation,
+          state.goal
+        ];
+        document.getElementById("designPreviewTags").innerHTML = tags.map(function (item) {
+          return '<span class="tag">' + item + '</span>';
+        }).join("");
+        document.getElementById("designPhaseTable").innerHTML = currentPlan().map(function (phase) {
+          return "<tr><td>" + phase.name + "</td><td>" + phase.subtitle + "</td><td>" + phase.lessons.length + "次课</td></tr>";
+        }).join("");
+      }
+
+      function renderReport() {
+        syncLabelsFromAnswers();
+        var abilityAvg = average(state.abilityAnswers);
+        var motivationAvg = average(state.motivationAnswers);
+        document.getElementById("reportStudentName").textContent = state.studentName;
+        document.getElementById("reportScoreLevel").textContent = scoreLevel(state.recentScore);
+        document.getElementById("reportScoreValue").textContent = state.recentScore + "分";
+        document.getElementById("reportAbilityLevel").textContent = abilityLevel(abilityAvg);
+        document.getElementById("reportAbilityValue").textContent = abilityAvg.toFixed(1) + "分 / 5分";
+        document.getElementById("reportMotivationLevel").textContent = abilityLevel(motivationAvg);
+        document.getElementById("reportMotivationValue").textContent = motivationAvg.toFixed(1) + "分 / 5分";
+        document.getElementById("reportPortraitTags").innerHTML = [
+          "成绩" + scoreLevel(state.recentScore),
+          "能力" + state.ability,
+          "意愿" + state.motivation,
+          state.system,
+          state.term
+        ].map(function (item) {
+          return '<span class="feature-tag">' + item + '</span>';
+        }).join("");
+        document.getElementById("recommendReason").textContent =
+          "学生成绩" + scoreLevel(state.recentScore) + "，学习能力和意愿需要进一步培养，建议先以“" + state.system + "”承接主线内容，再通过阶段反馈动态调整。";
+        document.getElementById("reportStrategyLogic").textContent =
+          "成绩" + scoreLevel(state.recentScore) + "，可学习" + (state.score === "95分以上" ? "进阶内容和拓展题型" : (state.score === "70分以下" ? "基础内容" : "重点主线内容")) +
+          "；学习能力" + state.ability + "，建议" + (state.ability === "高" ? "测学与直接学结合" : (state.ability === "低" ? "直接学为主" : "测学与直接学灵活调整")) +
+          "；学习意愿" + state.motivation + "，需要" + (state.motivation === "高" ? "提高测学比例" : (state.motivation === "低" ? "减轻测学负担和增加正反馈" : "控制节奏与及时鼓励")) + "。";
+        document.getElementById("phaseStrategy1").textContent =
+          (state.term === "寒假" || state.term === "暑假" ? "提前预习下学期重点，兼顾认知增量与基础图题梳理。" : "围绕当前校内章节做同步夯实，提前补齐易错点。");
+        document.getElementById("phaseStrategy2").textContent =
+          "尽量走在学校前面。已学过（准确率低于100%）的测学，没测过的认知增量直接学，章节复习做单元卷和查漏补缺。";
+        document.getElementById("enterOverview").textContent = state.isAdjustingProfile ? "确认调整标签且调整规划 →" : "查看学习规划 →";
+        document.querySelectorAll("#systemOptions .system-option").forEach(function (item) {
+          item.classList.toggle("active", item.getAttribute("data-system") === state.system);
+        });
+      }
+
+      function overviewPhases() {
+        if (state.system === "寒暑衔接（提前预习）") {
+          return [
+            {
+              title: "寒暑阶段预习",
+              time: "1月-2月 ｜ 共 12 次课",
+              gain: ["提前学习下学期核心章节", "完成认知增量与基础图模训练", "目标分数：95分+"],
+              chapters: ["相交线与平行线", "三角形", "轴对称与平移"],
+              planning: ["预习为主", "测学结合", "薄弱点回流"],
+              strategies: [
+                ["学习策略", "每 5-6 次课完成 1 个主题预习，认知增量直接学，题型类少量测学。"],
+                ["练习策略", "讲后当天生成基础练，阶段末补专题卷。"],
+                ["复习策略", "每完成 1 个章节做小结，假期结束前完成一轮回顾。"]
+              ],
+              courseGroups: [
+                ["第1-4次课", "相交线与平行线：位置关系、平行线判定、基础图模", "35%"],
+                ["第5-8次课", "三角形：分类、边角关系、全等判定", "40%"],
+                ["第9-12次课", "轴对称与平移：概念、作图、综合变化", "25%"]
+              ]
+            },
+            {
+              title: "春季同步提升",
+              time: "3月-7月 ｜ 共 16 次课",
+              gain: ["承接校内进度同步强化", "章节复习与错题回流并行", "目标分数：班级前列"],
+              chapters: ["数据的整理与表示", "分式与方程", "概率初步"],
+              planning: ["同步提升", "章节复习", "错题回流"],
+              strategies: [
+                ["学习策略", "围绕校内章节同步推进，已掌握内容优先测学。"],
+                ["练习策略", "课后练习按知识元配发，重点控制完成率。"],
+                ["复习策略", "章节结束推复习卷，期中期末前做阶段模拟。"]
+              ],
+              courseGroups: [
+                ["第1-5次课", "数据整理与表示：统计图、表格、结论表达", "30%"],
+                ["第6-11次课", "分式与方程：概念、方程求解、应用题", "45%"],
+                ["第12-16次课", "概率初步：随机事件、概率计算、综合复习", "25%"]
+              ]
+            }
+          ];
+        }
+        return [
+          {
+            title: "春季同步校内",
+            time: "3月-7月 ｜ 中共 15 次课",
+            gain: ["学习人教版七年级下册：整式、三角形、轴对称", "对标基准：60分", "掌握基础知识与核心方法"],
+            chapters: ["相交线与平行线", "三角形", "轴对称与平移"],
+            planning: ["长短单结合", "100以内加减法", "表内乘法"],
+            strategies: [
+              ["学习策略", "每 6-7 次课走完 1 个阶段，按学习目标选择学—测学—平行训练。"],
+              ["练习策略", "讲后当天布置作业，定期做汇编练习，巩固所学知识并形成能力。"],
+              ["复习策略", "章节学完后做章节测试，期中期末针对薄弱点复习。"]
+            ],
+            courseGroups: [
+              ["第1-5次课", "相交线与平行线：位置关系、判定、性质、图模初步", "35%"],
+              ["第6-10次课", "三角形：分类、内角和、边角关系、全等判定", "40%"],
+              ["第11-15次课", "轴对称与平移：概念作图、综合变化、阶段复习", "25%"]
+            ]
+          },
+          {
+            title: "暑假领先校内",
+            time: "7月-8月 ｜ 中共 12 次课",
+            gain: ["提前覆盖下学期主线章节", "保留拓展内容与高频综合题", "目标分数：95分+"],
+            chapters: ["数据的整理与表示", "分式与方程", "概率初步"],
+            planning: ["提前预习", "测学结合", "定期专题梳理"],
+            strategies: [
+              ["学习策略", "认知增量内容直接学，融会贯通内容按意愿配置测学。"],
+              ["练习策略", "讲后配基础练+专题练，阶段末做综合卷。"],
+              ["复习策略", "每 4 次课做一次回顾，暑假结束前完成一轮总复习。"]
+            ],
+            courseGroups: [
+              ["第1-4次课", "统计与数据：统计图、分析表达、信息读取", "28%"],
+              ["第5-9次课", "分式与方程：分式概念、方程、应用题", "47%"],
+              ["第10-12次课", "概率初步：频率、简单概率、综合问题", "25%"]
+            ]
+          }
+        ];
+      }
+
+      function renderOverview() {
+        var phases = overviewPhases();
+        if (state.overviewPhaseIndex >= phases.length) state.overviewPhaseIndex = 0;
+        var current = phases[state.overviewPhaseIndex];
+        document.getElementById("overviewTitle").textContent = "1 " + state.studentName + " 的学习规划";
+        document.getElementById("overviewMeta").textContent = "成绩" + scoreLevel(state.recentScore) + " · 能力" + state.ability + " · 意愿" + state.motivation + " · " + state.system;
+        document.getElementById("overviewPhaseNav").innerHTML = phases.map(function (phase, index) {
+          return '<button class="phase-nav-card' + (index === state.overviewPhaseIndex ? ' active' : '') + '" data-overview-phase="' + index + '"><strong>' + (index + 1) + ' ' + phase.title + '</strong><div class="hint">' + phase.time + '</div></button>';
+        }).join('');
+        document.getElementById("overviewPhaseTitle").textContent = current.title;
+        document.getElementById("overviewPhaseMeta").textContent = current.time;
+        document.getElementById("overviewGoalHero").innerHTML = '<strong>预期收获</strong><ul>' + current.gain.map(function (item) { return '<li>' + item + '</li>'; }).join('') + '</ul>';
+        document.getElementById("overviewStrategies").innerHTML = current.strategies.map(function (row) {
+          return '<div class="strategy-mini"><strong>' + row[0] + '</strong><div class="hint">' + row[1] + '</div></div>';
+        }).join('');
+        document.getElementById("courseAccordionTitle").textContent = "课次安排 · 共 " + current.time.replace(/.*共\s*/, '').replace('次课', '次');
+        document.getElementById("courseAccordionBody").innerHTML = current.courseGroups.map(function (row) {
+          return '<div class="course-plan-row"><strong>' + row[0] + '</strong><div>' + row[1] + '</div><div>' + row[2] + '</div></div>';
+        }).join('');
+        document.getElementById("courseAccordionBody").classList.toggle("hidden", !state.courseAccordionOpen);
+        document.getElementById("courseAccordionIcon").textContent = state.courseAccordionOpen ? '⌃' : '⌄';
+        document.querySelectorAll("[data-overview-phase]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            state.overviewPhaseIndex = Number(btn.getAttribute("data-overview-phase"));
+            renderOverview();
+          });
+        });
+      }
+
+      function renderPhases() {
+        var phases = currentPlan();
+        document.getElementById("phaseList").innerHTML = phases.map(function (phase) {
+          var count = phase.chapters.length + "章 / " + phase.lessons.length + "次课";
+          return '<button class="phase-btn' + (phase.id === state.currentPhaseId ? ' active' : '') + '" data-phase-id="' + phase.id + '"><strong>' + phase.name + '</strong><span>' + phase.subtitle + ' · ' + count + '</span></button>';
+        }).join("");
+        document.querySelectorAll("[data-phase-id]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            state.currentPhaseId = btn.getAttribute("data-phase-id");
+            state.currentLessonId = currentPhase().lessons[0].id;
+            renderWorkspace();
+          });
+        });
+      }
+
+      function renderLessons() {
+        document.getElementById("lessonList").innerHTML = currentPhase().lessons.map(function (lesson) {
+          return '<button class="lesson-btn' + (lesson.id === state.currentLessonId ? ' active' : '') + '" data-lesson-id="' + lesson.id + '"><strong>' + lesson.title + '</strong><span>' + lesson.summary + '</span></button>';
+        }).join("");
+        document.querySelectorAll("[data-lesson-id]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            state.currentLessonId = btn.getAttribute("data-lesson-id");
+            renderWorkspace();
+          });
+        });
+      }
+
+      function nodeHtml(node) {
+        var markClass = node.kind === "认知增量" ? "mark-new" : "mark-link";
+        var markText = node.kind + " · " + node.level;
+        return '<div class="node"><div class="node-left"><strong>' + node.name + '</strong><span>' + node.importance + '重要度</span></div><span class="node-mark ' + markClass + '">' + markText + '</span></div>';
+      }
+
+      function moduleStatus(seed) {
+        if (seed % 5 === 0) return { status: "done", label: "已完成", accuracy: 90, completion: 100 };
+        if (seed % 5 === 1) return { status: "progress", label: "学习中", accuracy: 76, completion: 68 };
+        if (seed % 5 === 2) return { status: "low", label: "低掌握", accuracy: 58, completion: 100 };
+        return { status: "pending", label: "未开始", accuracy: 0, completion: 0 };
+      }
+
+      function buildGraphData(phase) {
+        var nodes = [];
+        var edges = [];
+        var chapterIds = [];
+
+        phase.chapters.forEach(function (chapter, cIndex) {
+          var chapterId = phase.id + "-chapter-" + cIndex;
+          chapterIds.push(chapterId);
+          nodes.push({
+            id: chapterId,
+            type: "chapter",
+            chapterIndex: cIndex,
+            title: chapter.title,
+            subtitle: chapter.subtitle,
+            x: 640,
+            y: 80 + cIndex * 250,
+            chapterTitle: chapter.title,
+            tags: { 层级: "章", 聚焦: chapter.focus, 锚点: chapter.anchor, 预计完成率: (72 + cIndex * 3) + "%" },
+            progress: { completion: 72 + cIndex * 3, accuracy: 78 + cIndex * 2, status: "progress", label: "学习中" },
+            children: [],
+            related: []
+          });
+
+          if (cIndex < phase.chapters.length - 1) {
+            edges.push({ from: chapterId, to: phase.id + "-chapter-" + (cIndex + 1), kind: "order" });
+          }
+
+          var sections = [
+            {
+              name: "概念建立",
+              side: "left",
+              units: [
+                { name: chapter.basis[0].name, modules: [chapter.basis[0], chapter.basis[1]] },
+                { name: chapter.basis[1].name, modules: [chapter.basis[1], chapter.basis[2] || chapter.advanced[0]] }
+              ]
+            },
+            {
+              name: "综合应用",
+              side: "right",
+              units: [
+                { name: chapter.basis[2] ? chapter.basis[2].name : chapter.advanced[0].name, modules: [chapter.advanced[0], chapter.advanced[1] || chapter.advanced[0]] },
+                { name: chapter.advanced[0].name, modules: [chapter.advanced[0], chapter.advanced[1] || chapter.basis[0]] }
+              ]
+            }
+          ];
+
+          sections.forEach(function (section, sIndex) {
+            var sectionId = chapterId + "-section-" + sIndex;
+            var sectionX = section.side === "left" ? 430 : 860;
+            var sectionY = 95 + cIndex * 250 + sIndex * 112;
+            nodes.push({
+              id: sectionId,
+              type: "section",
+              chapterIndex: cIndex,
+              sectionIndex: sIndex,
+              side: section.side,
+              parentId: chapterId,
+              title: section.name,
+              subtitle: chapter.title.replace(/^第\d+章\s*/, ""),
+              x: sectionX,
+              y: sectionY,
+              chapterTitle: chapter.title,
+              tags: { 层级: "节", 知识类型: chapter.focus, 内容数: "2个知识元", 重要度: "高" },
+              progress: { completion: 66 + sIndex * 12, accuracy: 74 + sIndex * 6, status: "progress", label: "学习中" },
+              children: [],
+              related: [chapterId]
+            });
+            edges.push({ from: chapterId, to: sectionId, kind: "order" });
+
+            section.units.forEach(function (unit, uIndex) {
+              var unitId = sectionId + "-unit-" + uIndex;
+              var unitX = section.side === "left" ? 160 : 1110;
+              var unitY = sectionY + uIndex * 90;
+              nodes.push({
+                id: unitId,
+                type: "unit",
+                chapterIndex: cIndex,
+                sectionIndex: sIndex,
+                unitIndex: uIndex,
+                side: section.side,
+                parentId: sectionId,
+                title: unit.name,
+                subtitle: "知识元",
+                x: unitX,
+                y: unitY,
+                chapterTitle: chapter.title,
+                tags: { 层级: "元", 知识类型: uIndex === 0 ? "认知增量" : "融会贯通", 顺序: "第" + (uIndex + 1) + "元", 重要度: uIndex === 0 ? "高" : "中" },
+                progress: { completion: 52 + uIndex * 18, accuracy: 68 + uIndex * 8, status: uIndex === 0 ? "progress" : "pending", label: uIndex === 0 ? "学习中" : "未开始" },
+                children: [],
+                related: [chapterId, sectionId]
+              });
+              edges.push({ from: sectionId, to: unitId, kind: "order" });
+
+              unit.modules.forEach(function (module, mIndex) {
+                var moduleId = unitId + "-module-" + mIndex;
+                var statusInfo = moduleStatus(cIndex + sIndex + uIndex + mIndex);
+                var moduleX = section.side === "left" ? (uIndex === 0 ? 320 : 360) : (uIndex === 0 ? 930 : 970);
+                var moduleY = unitY + mIndex * 74;
+                nodes.push({
+                  id: moduleId,
+                  type: "module",
+                  chapterIndex: cIndex,
+                  sectionIndex: sIndex,
+                  unitIndex: uIndex,
+                  moduleIndex: mIndex,
+                  side: section.side,
+                  parentId: unitId,
+                  title: module.name,
+                  subtitle: module.kind + " · " + module.level,
+                  x: moduleX,
+                  y: moduleY,
+                  chapterTitle: chapter.title,
+                  tags: {
+                    层级: "模",
+                    知识类型: module.kind,
+                    难度: module.level,
+                    重要度: module.importance,
+                    学习方式: module.kind === "认知增量" ? "新知学" : "测学"
+                  },
+                  progress: statusInfo,
+                  resources: [
+                    { type: "视频", title: module.name + "讲解视频" },
+                    { type: "题目", title: module.name + "练习 8题" }
+                  ],
+                  children: [],
+                  related: [chapterId, sectionId, unitId]
+                });
+                edges.push({ from: unitId, to: moduleId, kind: "order" });
+                if (mIndex === 1) {
+                  edges.push({ from: unitId + "-module-0", to: moduleId, kind: "dependency" });
+                }
+              });
+            });
+          });
+        });
+
+        var map = {};
+        nodes.forEach(function (node) { map[node.id] = node; });
+        nodes.forEach(function (node) {
+          if (node.parentId && map[node.parentId]) map[node.parentId].children.push(node.id);
+        });
+        edges.forEach(function (edge) {
+          if (map[edge.from] && map[edge.from].related.indexOf(edge.to) === -1) map[edge.from].related.push(edge.to);
+          if (map[edge.to] && map[edge.to].related.indexOf(edge.from) === -1) map[edge.to].related.push(edge.from);
+        });
+
+        return { nodes: nodes, edges: edges, map: map, chapterIds: chapterIds };
+      }
+
+      function descendantsOf(map, nodeId, bucket) {
+        var node = map[nodeId];
+        if (!node) return;
+        (node.children || []).forEach(function (childId) {
+          if (!bucket[childId]) {
+            bucket[childId] = true;
+            descendantsOf(map, childId, bucket);
+          }
+        });
+      }
+
+      function parentsOf(map, nodeId, bucket) {
+        var node = map[nodeId];
+        if (node && node.parentId && !bucket[node.parentId]) {
+          bucket[node.parentId] = true;
+          parentsOf(map, node.parentId, bucket);
+        }
+      }
+
+      function applyGraphState(graph) {
+        var offMap = {};
+        Object.keys(state.graphOverrides).forEach(function (id) {
+          if (state.graphOverrides[id] && state.graphOverrides[id].off) offMap[id] = true;
+        });
+        Object.keys(offMap).forEach(function (id) {
+          descendantsOf(graph.map, id, offMap);
+        });
+
+        graph.nodes.forEach(function (node) {
+          var override = state.graphOverrides[node.id] || {};
+          if (state.graphAliases[node.id]) node.title = state.graphAliases[node.id];
+          if (offMap[node.id]) {
+            node.progress.status = "off";
+            node.progress.label = "已熄灭";
+          }
+          if (override.complete) {
+            node.progress.status = "done";
+            node.progress.label = "已完成";
+            node.progress.completion = 100;
+            node.progress.accuracy = Math.max(node.progress.accuracy, 90);
+          }
+        });
+
+        graph.edges.forEach(function (edge) {
+          if (edge.kind === "dependency" && offMap[edge.from]) {
+            var target = graph.map[edge.to];
+            if (target && !offMap[target.id]) {
+              target.progress.status = "blocked";
+              target.progress.label = "前序已熄灭";
+            }
+          }
+        });
+      }
+
+      function statusClass(status) {
+        if (status === "done") return "status-done";
+        if (status === "progress") return "status-progress";
+        if (status === "low") return "status-low";
+        if (status === "off" || status === "blocked") return "status-off";
+        return "status-pending";
+      }
+
+      function graphMetrics(graph) {
+        var modules = graph.nodes.filter(function (node) { return node.type === "module"; });
+        var done = modules.filter(function (node) { return node.progress.status === "done"; }).length;
+        var low = modules.filter(function (node) { return node.progress.status === "low"; }).length;
+        var off = modules.filter(function (node) { return node.progress.status === "off"; }).length;
+        var accuracy = modules.reduce(function (sum, node) { return sum + node.progress.accuracy; }, 0) / modules.length || 0;
+        return [
+          { label: "模节点", value: modules.length + "个" },
+          { label: "已完成", value: done + "个" },
+          { label: "低掌握", value: low + "个" },
+          { label: "已熄灭", value: off + "个" },
+          { label: "平均正确率", value: Math.round(accuracy) + "%" }
+        ];
+      }
+
+      function defaultExpandedChapter(graph) {
+        if (state.expandedChapterId && graph.map[state.expandedChapterId]) return state.expandedChapterId;
+        return graph.chapterIds[0];
+      }
+
+      function visibleGraphNodeIds(graph) {
+        var expanded = defaultExpandedChapter(graph);
+        var visible = {};
+        graph.chapterIds.forEach(function (id) { visible[id] = true; });
+        graph.nodes.forEach(function (node) {
+          if (node.id.indexOf(expanded + "-") === 0) visible[node.id] = true;
+        });
+        return visible;
+      }
+
+      function graphRenderLayout(graph) {
+        var expanded = defaultExpandedChapter(graph);
+        var layout = {};
+        var sectionBase = {};
+        var unitBase = {};
+
+        graph.nodes.forEach(function (node) {
+          if (node.type === "chapter") {
+            layout[node.id] = {
+              x: 80,
+              y: 80 + node.chapterIndex * 150,
+              width: 220
+            };
+          }
+        });
+
+        graph.nodes.filter(function (node) {
+          return node.type === "section" && node.id.indexOf(expanded + "-") === 0;
+        }).forEach(function (node) {
+          var y = 95 + node.sectionIndex * 250;
+          sectionBase[node.id] = y;
+          layout[node.id] = {
+            x: 380,
+            y: y,
+            width: 210
+          };
+        });
+
+        graph.nodes.filter(function (node) {
+          return node.type === "unit" && node.id.indexOf(expanded + "-") === 0;
+        }).forEach(function (node) {
+          var base = sectionBase[node.parentId] || 110;
+          var y = base + node.unitIndex * 108;
+          unitBase[node.id] = y;
+          layout[node.id] = {
+            x: 690,
+            y: y,
+            width: 190
+          };
+        });
+
+        graph.nodes.filter(function (node) {
+          return node.type === "module" && node.id.indexOf(expanded + "-") === 0;
+        }).forEach(function (node) {
+          var base = unitBase[node.parentId] || 110;
+          var y = base + node.moduleIndex * 92;
+          layout[node.id] = {
+            x: 1010,
+            y: y,
+            width: 210
+          };
+        });
+
+        return layout;
+      }
+
+      function relatedIds(graph, nodeId) {
+        var set = {};
+        if (!nodeId || !graph.map[nodeId]) return set;
+        set[nodeId] = true;
+        parentsOf(graph.map, nodeId, set);
+        descendantsOf(graph.map, nodeId, set);
+        (graph.map[nodeId].related || []).forEach(function (id) { set[id] = true; });
+        graph.edges.forEach(function (edge) {
+          if (edge.from === nodeId || edge.to === nodeId) {
+            set[edge.from] = true;
+            set[edge.to] = true;
+          }
+        });
+        return set;
+      }
+
+      function detailHtml(graph, nodeId) {
+        var node = graph.map[nodeId];
+        if (!node) {
+          return '<div class="graph-side"><div class="side-section"><h4>节点详情</h4><div class="hint">点击图谱中的章 / 节 / 元 / 模，可查看标签、状态、上下游关系并直接编辑。</div></div></div>';
+        }
+        var related = Object.keys(relatedIds(graph, nodeId)).filter(function (id) { return id !== nodeId; }).slice(0, 8).map(function (id) { return graph.map[id]; });
+        return '<div class="graph-side">' +
+          '<div class="side-section"><h4>节点详情</h4>' +
+            '<input class="inline-edit" id="nodeAliasInput" value="' + node.title.replace(/"/g, '&quot;') + '" />' +
+          '</div>' +
+          '<div class="side-section"><div class="side-grid">' +
+            '<div class="side-metric"><span>层级</span><strong>' + (node.tags["层级"] || "-") + '</strong></div>' +
+            '<div class="side-metric"><span>状态</span><strong>' + node.progress.label + '</strong></div>' +
+            '<div class="side-metric"><span>完成度</span><strong>' + node.progress.completion + '%</strong></div>' +
+            '<div class="side-metric"><span>正确率</span><strong>' + node.progress.accuracy + '%</strong></div>' +
+          '</div></div>' +
+          '<div class="side-section"><h4>标签信息</h4><table class="detail-table"><tbody>' +
+            Object.keys(node.tags).map(function (key) { return '<tr><td>' + key + '</td><td>' + node.tags[key] + '</td></tr>'; }).join('') +
+          '</tbody></table></div>' +
+          '<div class="side-section"><h4>资源</h4><div class="resource-strip">' +
+            (node.resources || []).map(function (resource) { return '<span class="resource-badge">' + resource.type + ' · ' + resource.title + '</span>'; }).join('') +
+          '</div></div>' +
+          '<div class="side-section"><h4>相关节点</h4><div class="related-list">' +
+            (related.length ? related.map(function (item) { return '<div class="related-item"><strong>' + item.title + '</strong><div class="hint">' + item.tags["层级"] + ' · ' + item.progress.label + '</div></div>'; }).join('') : '<div class="hint">暂无更多相关节点</div>') +
+          '</div></div>' +
+          '<div class="side-section"><h4>操作</h4><div class="side-actions">' +
+            '<button class="graph-tool-btn" id="saveNodeEdit">保存名称</button>' +
+            '<button class="graph-tool-btn" id="toggleNodeOff">' + ((node.progress.status === "off") ? '重新启用' : '熄灭节点') + '</button>' +
+            '<button class="graph-tool-btn" id="markNodeDone">标记完成</button>' +
+            '<button class="graph-tool-btn" id="focusRelated">仅看关联</button>' +
+          '</div></div>' +
+        '</div>';
+      }
+
+      function renderListMode() {
+        var phase = currentPhase();
+        var lesson = currentLesson();
+        document.getElementById("mapTitle").textContent = state.subject + " · " + state.grade + " · " + state.edition + " · 个性化地图";
+        document.getElementById("mapSubtitle").textContent = "当前显示：" + phase.name + " · " + phase.subtitle + " · " + lesson.title;
+        document.getElementById("listMode").innerHTML =
+          '<div class="chapter-list">' +
+            phase.chapters.map(function (chapter, idx) {
+              return '<section class="chapter">' +
+                '<div class="chapter-header">' +
+                  '<div><h4>' + chapter.title + '</h4><p>' + chapter.subtitle + '</p></div>' +
+                  '<div class="chapter-tags"><span class="chip">' + chapter.focus + '</span><span class="chip">' + (idx + 1) + '/' + phase.chapters.length + '</span></div>' +
+                '</div>' +
+                '<div class="chapter-grid">' +
+                  '<div class="chapter-anchor"><strong>锚点</strong><div class="hint">' + chapter.anchor + '</div></div>' +
+                  '<div class="node-column"><h5>基础</h5><div class="node-list">' + chapter.basis.map(nodeHtml).join("") + '</div></div>' +
+                  '<div class="node-column"><h5>进阶 / 拔高</h5><div class="node-list">' + chapter.advanced.map(nodeHtml).join("") + '</div></div>' +
+                '</div>' +
+              '</section>';
+            }).join("") +
+          '</div>';
+      }
+
+      function renderGraphMode() {
+        var phase = currentPhase();
+        var graph = buildGraphData(phase);
+        applyGraphState(graph);
+        state.expandedChapterId = defaultExpandedChapter(graph);
+        var visible = visibleGraphNodeIds(graph);
+        var positions = graphRenderLayout(graph);
+        if (!state.selectedGraphNodeId || !graph.map[state.selectedGraphNodeId] || !visible[state.selectedGraphNodeId]) {
+          state.selectedGraphNodeId = state.expandedChapterId;
+        }
+        var related = relatedIds(graph, state.selectedGraphNodeId);
+
+        var lines = graph.edges.filter(function (edge) {
+          return visible[edge.from] && visible[edge.to];
+        }).map(function (edge) {
+          var from = graph.map[edge.from];
+          var to = graph.map[edge.to];
+          var fromPos = positions[edge.from];
+          var toPos = positions[edge.to];
+          var fromX = fromPos.x + fromPos.width;
+          var fromY = fromPos.y + 42;
+          var toX = toPos.x;
+          var toY = toPos.y + 42;
+          var weak = Object.keys(related).length && !(related[edge.from] && related[edge.to]);
+          return '<path class="graph-edge ' + (edge.kind === "dependency" ? 'dependency ' : '') + (weak ? 'weak' : '') +
+            '" d="M' + fromX + ' ' + fromY + ' C ' + ((fromX + toX) / 2) + ' ' + fromY + ', ' + ((fromX + toX) / 2) + ' ' + toY + ', ' + toX + ' ' + toY + '" />';
+        }).join("");
+
+        var nodeHtmls = graph.nodes.filter(function (node) {
+          return visible[node.id];
+        }).map(function (node) {
+          var isSelected = node.id === state.selectedGraphNodeId;
+          var dimmed = Object.keys(related).length && !related[node.id];
+          var status = node.progress.status;
+          var shape = node.type === "chapter" ? "shape-chapter" : (node.type === "section" ? "shape-section" : (node.type === "unit" ? "shape-unit" : ""));
+          var pos = positions[node.id];
+          var tip = [
+            '层级：' + (node.tags["层级"] || '-'),
+            '知识类型：' + (node.tags["知识类型"] || node.tags["聚焦"] || '-'),
+            '正确率：' + node.progress.accuracy + '%',
+            '完成度：' + node.progress.completion + '%',
+            '状态：' + node.progress.label
+          ].join('\n');
+          return '<div class="graph-node ' + node.type + ' ' + shape + ' ' + (isSelected ? 'selected ' : '') + (dimmed ? 'dimmed ' : '') + (status === 'off' ? 'off ' : '') + (status === 'blocked' ? 'blocked ' : '') +
+            '" style="left:' + pos.x + 'px; top:' + pos.y + 'px;" data-node-id="' + node.id + '" data-tooltip="' + tip.replace(/"/g, '&quot;') + '">' +
+              '<h5>' + node.title + '</h5><p>' + node.subtitle + '</p>' +
+              '<div class="node-badges"><span class="node-mark ' + (node.tags["知识类型"] === "融会贯通" ? 'mark-link' : 'mark-new') + '">' + (node.tags["知识类型"] || node.tags["聚焦"] || node.type) + '</span></div>' +
+              (node.type === "module" ? '<div class="resource-strip">' + (node.resources || []).map(function (item) { return '<span class="resource-badge">' + item.type + '</span>'; }).join('') + '</div>' : '') +
+              '<div class="status-row"><span class="node-status ' + statusClass(status) + '">' + node.progress.label + '</span><strong>' + node.progress.accuracy + '%</strong></div>' +
+            '</div>';
+        }).join("");
+
+        document.getElementById("graphMode").innerHTML =
+          '<div class="graph-toolbar">' +
+            '<div class="graph-metrics">' +
+              graphMetrics(graph).map(function (item) {
+                return '<div class="graph-metric"><span>' + item.label + '</span><strong>' + item.value + '</strong></div>';
+              }).join('') +
+            '</div>' +
+            '<div class="graph-tools">' +
+              '<button class="graph-tool-btn" id="zoomOut">缩小</button>' +
+              '<button class="graph-tool-btn" id="zoomIn">放大</button>' +
+              '<button class="graph-tool-btn" id="resetGraph">重置</button>' +
+              '<button class="graph-tool-btn" id="fitExpanded">仅看当前章</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="graph-legend">' +
+            '<span class="legend-item"><span class="legend-dot" style="background:#e7efff;"></span>左到右按 章 → 节 → 元 → 模 展开</span>' +
+            '<span class="legend-item"><span class="legend-dot" style="background:#3f6dff;"></span>章</span>' +
+            '<span class="legend-item"><span class="legend-dot" style="background:#d4e4ff;"></span>节</span>' +
+            '<span class="legend-item"><span class="legend-dot" style="background:#b9eef1;"></span>元</span>' +
+            '<span class="legend-item"><span class="legend-dot" style="background:#18b56a;"></span>认知增量</span>' +
+            '<span class="legend-item"><span class="legend-dot" style="background:#f0a128;"></span>融会贯通</span>' +
+            '<span class="legend-item"><span class="legend-dot" style="background:#97a9db;"></span>虚线表示前后序依赖</span>' +
+          '</div>' +
+          '<div class="graph-layout">' +
+            '<div class="graph-board">' +
+              '<div class="graph-stage" id="graphStage" style="transform:scale(' + state.graphScale + ');">' +
+                '<svg class="graph-svg" viewBox="0 0 1600 1200" preserveAspectRatio="none">' + lines + '</svg>' +
+                nodeHtmls +
+              '</div>' +
+            '</div>' +
+            '<div id="graphDetailPanel">' + detailHtml(graph, state.selectedGraphNodeId) + '</div>' +
+          '</div>';
+
+        document.querySelectorAll("[data-node-id]").forEach(function (nodeEl) {
+          nodeEl.addEventListener("click", function () {
+            var id = nodeEl.getAttribute("data-node-id");
+            var node = graph.map[id];
+            state.selectedGraphNodeId = id;
+            if (node.type === "chapter") state.expandedChapterId = id;
+            renderGraphMode();
+          });
+          nodeEl.addEventListener("mouseenter", function (event) {
+            var tipText = nodeEl.getAttribute("data-tooltip");
+            showGraphTooltip(event, nodeEl.querySelector("h5").textContent, tipText);
+          });
+          nodeEl.addEventListener("mousemove", function (event) {
+            moveGraphTooltip(event);
+          });
+          nodeEl.addEventListener("mouseleave", function () {
+            hideGraphTooltip();
+          });
+        });
+
+        var zoomIn = document.getElementById("zoomIn");
+        var zoomOut = document.getElementById("zoomOut");
+        var resetGraph = document.getElementById("resetGraph");
+        var fitExpanded = document.getElementById("fitExpanded");
+        if (zoomIn) zoomIn.addEventListener("click", function () { state.graphScale = Math.min(1.6, +(state.graphScale + 0.1).toFixed(2)); renderGraphMode(); });
+        if (zoomOut) zoomOut.addEventListener("click", function () { state.graphScale = Math.max(0.7, +(state.graphScale - 0.1).toFixed(2)); renderGraphMode(); });
+        if (resetGraph) resetGraph.addEventListener("click", function () {
+          state.graphScale = 1;
+          state.selectedGraphNodeId = state.expandedChapterId;
+          renderGraphMode();
+        });
+        if (fitExpanded) fitExpanded.addEventListener("click", function () {
+          state.selectedGraphNodeId = state.expandedChapterId;
+          state.graphScale = 1.05;
+          renderGraphMode();
+        });
+
+        var saveNodeEdit = document.getElementById("saveNodeEdit");
+        if (saveNodeEdit) {
+          saveNodeEdit.addEventListener("click", function () {
+            var input = document.getElementById("nodeAliasInput");
+            if (input && state.selectedGraphNodeId) {
+              state.graphAliases[state.selectedGraphNodeId] = input.value || graph.map[state.selectedGraphNodeId].title;
+              showToast("节点名称已保存");
+              renderGraphMode();
+            }
+          });
+        }
+        var toggleNodeOff = document.getElementById("toggleNodeOff");
+        if (toggleNodeOff) {
+          toggleNodeOff.addEventListener("click", function () {
+            var nodeId = state.selectedGraphNodeId;
+            if (!nodeId) return;
+            var node = graph.map[nodeId];
+            var currentlyOff = node.progress.status === "off";
+            state.graphOverrides[nodeId] = state.graphOverrides[nodeId] || {};
+            state.graphOverrides[nodeId].off = !currentlyOff;
+            showToast(!currentlyOff ? "节点已熄灭，相关后续节点已自动限制" : "节点已重新启用");
+            renderGraphMode();
+          });
+        }
+        var markNodeDone = document.getElementById("markNodeDone");
+        if (markNodeDone) {
+          markNodeDone.addEventListener("click", function () {
+            var nodeId = state.selectedGraphNodeId;
+            if (!nodeId) return;
+            state.graphOverrides[nodeId] = state.graphOverrides[nodeId] || {};
+            state.graphOverrides[nodeId].complete = true;
+            showToast("节点已标记完成");
+            renderGraphMode();
+          });
+        }
+        var focusRelated = document.getElementById("focusRelated");
+        if (focusRelated) {
+          focusRelated.addEventListener("click", function () {
+            renderGraphMode();
+          });
+        }
+      }
+
+      function renderWorkspace() {
+        renderPhases();
+        renderLessons();
+        renderListMode();
+        renderGraphMode();
+        document.getElementById("listMode").classList.toggle("hidden", state.viewMode !== "list");
+        document.getElementById("graphMode").classList.toggle("hidden", state.viewMode !== "graph");
+        document.querySelectorAll("[data-view-mode]").forEach(function (btn) {
+          btn.classList.toggle("active", btn.getAttribute("data-view-mode") === state.viewMode);
+        });
+        document.getElementById("workspaceShell").className = "workspace-shell" +
+          (state.phaseCollapsed ? " phase-collapsed" : "") +
+          (state.lessonCollapsed ? " lesson-collapsed" : "");
+        document.getElementById("phaseCard").classList.toggle("collapsed-card", state.phaseCollapsed);
+        document.getElementById("lessonCard").classList.toggle("collapsed-card", state.lessonCollapsed);
+      }
+
+      function showToast(text) {
+        var existing = document.getElementById("graphToast");
+        if (existing) existing.remove();
+        var toast = document.createElement("div");
+        toast.className = "toast";
+        toast.id = "graphToast";
+        toast.textContent = text;
+        document.body.appendChild(toast);
+        setTimeout(function () {
+          if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 1800);
+      }
+
+      function ensureTooltip() {
+        var tip = document.getElementById("graphTooltip");
+        if (!tip) {
+          tip = document.createElement("div");
+          tip.id = "graphTooltip";
+          tip.className = "graph-tooltip hidden";
+          document.body.appendChild(tip);
+        }
+        return tip;
+      }
+
+      function showGraphTooltip(event, title, text) {
+        var tip = ensureTooltip();
+        tip.innerHTML = "<strong>" + title + "</strong>" + String(text).split("\n").map(function (line) { return "<div>" + line + "</div>"; }).join("");
+        tip.classList.remove("hidden");
+        moveGraphTooltip(event);
+      }
+
+      function moveGraphTooltip(event) {
+        var tip = ensureTooltip();
+        tip.style.left = (event.clientX + 18) + "px";
+        tip.style.top = (event.clientY + 18) + "px";
+      }
+
+      function hideGraphTooltip() {
+        var tip = document.getElementById("graphTooltip");
+        if (tip) tip.classList.add("hidden");
+      }
+
+      function syncFormToDesign() {
+        setActive("#designScoreChoices", "data-score", state.score);
+        setActive("#designAbilityChoices", "data-ability", state.ability);
+        setActive("#designMotivationChoices", "data-motivation", state.motivation);
+        document.getElementById("designGoalSelect").value = state.goal;
+        document.getElementById("designProgressSelect").value = state.progress;
+        renderDesignPreview();
+      }
+
+      document.getElementById("startPlan").addEventListener("click", function () {
+        document.getElementById("entryScreen").classList.add("hidden");
+        document.getElementById("planScreen").classList.remove("hidden");
+        document.getElementById("reportScreen").classList.add("hidden");
+        renderPlanPreview();
+        renderWizardScores();
+        showWizardStep(1);
+      });
+
+      document.getElementById("backEntry").addEventListener("click", function () {
+        document.getElementById("planScreen").classList.add("hidden");
+        document.getElementById("entryScreen").classList.remove("hidden");
+      });
+      document.getElementById("subjectSelect").addEventListener("change", function (event) {
+        state.subject = event.target.value;
+      });
+      document.getElementById("gradeSelect").addEventListener("change", function (event) {
+        state.grade = event.target.value;
+      });
+      document.getElementById("editionSelect").addEventListener("change", function (event) {
+        state.edition = event.target.value;
+      });
+      document.getElementById("termSelect").addEventListener("change", function (event) {
+        state.term = event.target.value;
+      });
+      document.getElementById("studentName").addEventListener("input", function (event) {
+        state.studentName = event.target.value;
+      });
+      document.getElementById("recentScore").addEventListener("input", function (event) {
+        state.recentScore = Number(event.target.value || 0);
+      });
+
+      document.querySelectorAll("#systemOptions .system-option").forEach(function (item) {
+        item.addEventListener("click", function () {
+          state.system = item.getAttribute("data-system");
+          state.goal = state.system === "寒暑衔接（提前预习）" ? "领先校内" : "同步提升";
+          renderReport();
+        });
+      });
+
+      bindChoiceGroup("#designScoreChoices", "data-score", "score");
+      bindChoiceGroup("#designAbilityChoices", "data-ability", "ability");
+      bindChoiceGroup("#designMotivationChoices", "data-motivation", "motivation");
+
+      document.getElementById("designGoalSelect").addEventListener("change", function (event) {
+        state.goal = event.target.value;
+        renderPlanPreview();
+        renderDesignPreview();
+      });
+      document.getElementById("designProgressSelect").addEventListener("change", function (event) {
+        state.progress = event.target.value;
+        renderPlanPreview();
+        renderDesignPreview();
+      });
+
+      document.getElementById("toAbilityStep").addEventListener("click", function () {
+        renderPlanPreview();
+        showWizardStep(2);
+      });
+      document.getElementById("backToBasic").addEventListener("click", function () {
+        showWizardStep(1);
+      });
+      document.getElementById("toMotivationStep").addEventListener("click", function () {
+        renderPlanPreview();
+        showWizardStep(3);
+      });
+      document.getElementById("backToAbility").addEventListener("click", function () {
+        showWizardStep(2);
+      });
+
+      document.addEventListener("click", function (event) {
+        var btn = event.target.closest("[data-score-group]");
+        if (!btn) return;
+        var group = btn.getAttribute("data-score-group");
+        var index = Number(btn.getAttribute("data-score-index"));
+        var value = Number(btn.getAttribute("data-score-value"));
+        if (group === "ability") {
+          state.abilityAnswers[index] = value;
+          renderQuestionList("abilityQuestionList", abilityQuestions, state.abilityAnswers, "ability");
+          renderWizardScores();
+        }
+        if (group === "motivation") {
+          state.motivationAnswers[index] = value;
+          renderQuestionList("motivationQuestionList", motivationQuestions, state.motivationAnswers, "motivation");
+          renderWizardScores();
+        }
+      });
+
+      document.getElementById("generatePortrait").addEventListener("click", function () {
+        renderPlanPreview();
+        renderReport();
+        document.getElementById("planScreen").classList.add("hidden");
+        document.getElementById("reportScreen").classList.remove("hidden");
+      });
+
+      document.getElementById("restartWizard").addEventListener("click", function () {
+        state.isAdjustingProfile = false;
+        document.getElementById("reportScreen").classList.add("hidden");
+        document.getElementById("planScreen").classList.remove("hidden");
+        showWizardStep(1);
+      });
+
+      document.getElementById("enterOverview").addEventListener("click", function () {
+        if (state.isAdjustingProfile) {
+          var plan = currentPlan();
+          state.currentPhaseId = plan[0].id;
+          state.currentLessonId = plan[0].lessons[0].id;
+          document.getElementById("reportScreen").classList.add("hidden");
+          document.getElementById("workspaceScreen").classList.remove("hidden");
+          state.isAdjustingProfile = false;
+          renderWorkspace();
+        } else {
+          document.getElementById("reportScreen").classList.add("hidden");
+          document.getElementById("overviewScreen").classList.remove("hidden");
+          renderOverview();
+        }
+      });
+
+      document.getElementById("toggleCourseAccordion").addEventListener("click", function () {
+        state.courseAccordionOpen = !state.courseAccordionOpen;
+        renderOverview();
+      });
+      document.getElementById("resetPlan").addEventListener("click", function () {
+        state.isAdjustingProfile = false;
+        document.getElementById("overviewScreen").classList.add("hidden");
+        document.getElementById("planScreen").classList.remove("hidden");
+        showWizardStep(1);
+      });
+      document.getElementById("goToMap").addEventListener("click", function () {
+        var plan = currentPlan();
+        state.currentPhaseId = plan[0].id;
+        state.currentLessonId = plan[0].lessons[0].id;
+        document.getElementById("overviewScreen").classList.add("hidden");
+        document.getElementById("workspaceScreen").classList.remove("hidden");
+        renderWorkspace();
+      });
+
+      document.getElementById("togglePhase").addEventListener("click", function () {
+        state.phaseCollapsed = !state.phaseCollapsed;
+        renderWorkspace();
+      });
+      document.getElementById("toggleLesson").addEventListener("click", function () {
+        state.lessonCollapsed = !state.lessonCollapsed;
+        renderWorkspace();
+      });
+
+      document.querySelectorAll("[data-view-mode]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          state.viewMode = btn.getAttribute("data-view-mode");
+          renderWorkspace();
+        });
+      });
+
+      var designOverlay = document.getElementById("designOverlay");
+      document.getElementById("openPlanDesign").addEventListener("click", function () {
+        state.isAdjustingProfile = true;
+        document.getElementById("workspaceScreen").classList.add("hidden");
+        document.getElementById("planScreen").classList.remove("hidden");
+        showWizardStep(1);
+      });
+      document.getElementById("closePlanDesign").addEventListener("click", function () {
+        designOverlay.classList.add("hidden");
+      });
+      document.getElementById("cancelPlanDesign").addEventListener("click", function () {
+        designOverlay.classList.add("hidden");
+      });
+      document.getElementById("applyPlanDesign").addEventListener("click", function () {
+        renderPlanPreview();
+        renderReport();
+        renderWorkspace();
+        designOverlay.classList.add("hidden");
+      });
+
+      document.getElementById("sharePlan").addEventListener("click", function () {
+        showToast("已生成分享草稿");
+      });
+
+      renderQuestionList("abilityQuestionList", abilityQuestions, state.abilityAnswers, "ability");
+      renderQuestionList("motivationQuestionList", motivationQuestions, state.motivationAnswers, "motivation");
+      renderWizardScores();
+      renderPlanPreview();
+      renderDesignPreview();
+      renderReport();
+    })();
+  </script>
+</body>
+</html>
