@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>精准学说明文档</title>
+  <style>
+    :root {
+      --bg: #f4f8ff;
+      --panel: #ffffff;
+      --line: #d8e3f6;
+      --text: #1d2b45;
+      --muted: #6f7f99;
+      --accent: #315df5;
+      --accent-soft: #eef3ff;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(49, 93, 245, 0.08), transparent 26%),
+        linear-gradient(180deg, #f7fbff 0%, #eef5ff 100%);
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 34px;
+    }
+    .intro {
+      margin: 0 0 28px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 14px 28px rgba(72, 100, 154, 0.08);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 36px rgba(72, 100, 154, 0.12);
+      border-color: #bdd1fb;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.5;
+    }
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .tip {
+      margin-top: 28px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.86);
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>精准学说明文档</h1>
+    <p class="intro">这里汇总了当前项目中的网页原型与交互稿。开通 GitHub Pages 后，可以直接把这个入口页链接发给其他人查看。</p>
+
+    <div class="grid">
+      <a class="card" href="./AI%E5%88%9B%E5%BB%BA%E6%96%87%E6%A1%A3/%E4%B8%AA%E6%80%A7%E5%8C%96%E5%AD%A6%E4%B9%A0%E5%86%85%E5%AE%B9%E5%85%A8%E5%B1%80%E5%B7%A5%E4%BD%9C%E5%8F%B0%E5%8E%9F%E5%9E%8B-v6-%E9%98%B6%E6%AE%B5%E8%A7%84%E5%88%92%E7%B2%BE%E7%AE%80%E7%89%88.html">
+        <span class="tag">推荐查看</span>
+        <h2>个性化学习内容全局工作台 v6</h2>
+        <p>当前阶段规划精简版，适合对外展示最新工作台原型。</p>
+      </a>
+
+      <a class="card" href="./AI%E5%88%9B%E5%BB%BA%E6%96%87%E6%A1%A3/%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1%E5%B7%A5%E4%BD%9C%E5%8F%B0-%E7%8B%AC%E7%AB%8B%E5%8E%9F%E5%9E%8B.html">
+        <span class="tag">推荐查看</span>
+        <h2>知识图谱工作台</h2>
+        <p>独立的知识图谱原型页面，包含地图、节点详情、任务挂载等内容。</p>
+      </a>
+
+      <a class="card" href="./AI%E5%88%9B%E5%BB%BA%E6%96%87%E6%A1%A3/%E5%9C%B0%E5%9B%BE%E9%A1%B5%E7%AD%96%E7%95%A5%E6%9F%A5%E7%9C%8B%E5%85%A5%E5%8F%A3%E5%8E%9F%E5%9E%8B.html">
+        <span class="tag">地图页</span>
+        <h2>地图页策略查看入口</h2>
+        <p>聚焦地图页入口与策略查看链路的独立原型。</p>
+      </a>
+
+      <a class="card" href="./AI%E5%88%9B%E5%BB%BA%E6%96%87%E6%A1%A3/%E8%AE%AD%E7%BB%83%E5%9C%BA%E4%BD%9C%E4%B8%9A%E8%AE%BE%E7%BD%AE%E4%BA%A4%E4%BA%92%E5%8E%9F%E5%9E%8B.html">
+        <span class="tag">训练场</span>
+        <h2>训练场作业设置交互原型</h2>
+        <p>训练场相关的任务配置与交互流程展示。</p>
+      </a>
+
+      <a class="card" href="./AI%E5%88%9B%E5%BB%BA%E6%96%87%E6%A1%A3/%E5%90%8E%E5%8F%B0%E7%AD%96%E7%95%A5%E9%85%8D%E7%BD%AE%E5%B9%B3%E5%8F%B0%E5%8E%9F%E5%9E%8B.html">
+        <span class="tag">后台</span>
+        <h2>后台策略配置平台</h2>
+        <p>后台配置与策略管理方向的原型入口。</p>
+      </a>
+
+      <a class="card" href="./AI%E5%88%9B%E5%BB%BA%E6%96%87%E6%A1%A3/%E9%85%8D%E8%AF%BE%E7%AD%96%E7%95%A5%E5%90%8E%E5%8F%B0%E7%AE%A1%E7%90%86%E4%BA%A4%E4%BA%92%E5%8E%9F%E5%9E%8B-v2.html">
+        <span class="tag">后台</span>
+        <h2>配课策略后台管理 v2</h2>
+        <p>配课策略相关的后台管理与交互原型。</p>
+      </a>
+    </div>
+
+    <div class="tip">
+      如果后面还有新的 HTML 页面，也可以继续把链接加到这个入口页里。这样你对外只需要发一个总链接。
+    </div>
+  </div>
+</body>
+</html>
