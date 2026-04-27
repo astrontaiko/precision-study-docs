@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>训练场作业设置原型-基于全局工作台</title>
+  <style>
+    :root {
+      --bg: #eef7fb;
+      --panel: rgba(255, 255, 255, 0.94);
+      --line: #d8e8f5;
+      --blue: #315df5;
+      --text: #1e2a44;
+      --muted: #7082a0;
+      --shadow: 0 22px 52px rgba(63, 101, 170, 0.12);
+      --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: var(--font); color: var(--text); background: linear-gradient(180deg, #eaf8fb, #f8fcff); }
+    button, select, input { font: inherit; }
+
+    .screen {
+      min-height: 100vh;
+      padding: 26px 20px 34px;
+    }
+
+    .history-shell {
+      width: min(1320px, 100%);
+      margin: 0 auto;
+    }
+
+    .history-main {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255,255,255,0.95);
+      box-shadow: var(--shadow);
+    }
+
+    .history-main {
+      padding: 14px;
+      min-height: calc(100vh - 80px);
+    }
+
+    .history-headline {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .history-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .history-chip {
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #edf3ff;
+      border: 1px solid #d8e4ff;
+      color: #4866a0;
+      font-size: 12px;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      height: 40px;
+      border-radius: 14px;
+      padding: 0 18px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #223657, #315df5);
+      color: #fff;
+      box-shadow: 0 16px 32px rgba(49,93,245,0.18);
+    }
+
+    .secondary-btn {
+      background: #fff;
+      color: #45608f;
+      border-color: var(--line);
+    }
+
+    .training-quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .training-quick-card {
+      border-radius: 16px;
+      border: 1px solid #dce7fb;
+      background: linear-gradient(180deg, #f5f9ff, #eef5ff);
+      padding: 14px;
+    }
+
+    .training-quick-card strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #314a74;
+    }
+
+    .training-quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .training-section-title {
+      margin: 16px 0 8px;
+      font-size: 13px;
+      color: #7287a8;
+      font-weight: 700;
+    }
+
+    .training-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .training-item {
+      border: 1px solid #e6edfb;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 8px;
+      background: #fbfdff;
+      min-height: 146px;
+    }
+
+    .training-item.active {
+      border-color: #89a9ff;
+      box-shadow: 0 10px 22px rgba(49,93,245,0.14);
+      background: #eef4ff;
+    }
+
+    .training-item-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .training-item-head strong {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .source-chip {
+      position: relative;
+      cursor: default;
+    }
+
+    .note-pop {
+      position: absolute;
+      left: 0;
+      top: 26px;
+      width: 300px;
+      padding: 10px 11px;
+      border-radius: 12px;
+      background: rgba(29, 41, 67, 0.96);
+      color: #fff;
+      font-size: 12px;
+      line-height: 1.6;
+      display: none;
+      z-index: 8;
+      box-shadow: 0 14px 30px rgba(15, 24, 44, 0.3);
+    }
+
+    .source-chip:hover .note-pop { display: block; }
+
+    .headline-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .drawer-trigger {
+      min-width: 108px;
+    }
+
+    .setting-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .setting-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .setting-field select {
+      width: 100%;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid #d7e4fb;
+      background: #fff;
+      color: #425d89;
+      padding: 0 10px;
+    }
+
+    .setting-time-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .time-chip {
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid #d7e4fb;
+      background: #fff;
+      color: #5a739b;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .time-chip.active {
+      border-color: #8eaefc;
+      background: #eef4ff;
+      color: #2f55c0;
+      font-weight: 700;
+    }
+
+    .setting-summary {
+      margin-top: 8px;
+      color: #617394;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .drawer-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(33, 47, 78, 0.18);
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.2s ease;
+      z-index: 50;
+    }
+
+    .drawer-mask.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .setting-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(420px, calc(100vw - 24px));
+      height: 100vh;
+      background: rgba(255,255,255,0.98);
+      border-left: 1px solid #dce7fb;
+      box-shadow: -20px 0 48px rgba(32, 46, 77, 0.18);
+      transform: translateX(100%);
+      transition: 0.24s ease;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .setting-drawer.show {
+      transform: translateX(0);
+    }
+
+    .drawer-head {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid #e6eefb;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      background: linear-gradient(180deg, #f8fcff, #f2f7ff);
+    }
+
+    .drawer-head strong {
+      font-size: 18px;
+      color: #30476f;
+    }
+
+    .drawer-close {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid #d6e3fb;
+      background: #fff;
+      color: #4f678f;
+      cursor: pointer;
+    }
+
+    .drawer-body {
+      padding: 18px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .drawer-panel {
+      border: 1px solid #dce7fb;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #f8fbff, #f2f7ff);
+      padding: 14px;
+    }
+
+    .drawer-panel strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #314a74;
+      font-size: 14px;
+    }
+
+    .drawer-foot {
+      margin-top: auto;
+      padding: 14px 18px 18px;
+      border-top: 1px solid #e6eefb;
+      background: #fff;
+      display: flex;
+      gap: 10px;
+    }
+
+    .drawer-foot .secondary-btn,
+    .drawer-foot .primary-btn {
+      flex: 1;
+    }
+
+    .drawer-summary {
+      color: #617394;
+      font-size: 12px;
+      line-height: 1.7;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 1180px) {
+      .history-chip-row {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 960px) {
+      .training-quick-grid,
+      .training-card-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .history-main {
+        min-height: auto;
+      }
+
+      .setting-row {
+        grid-template-columns: 1fr;
+      }
+
+      .headline-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="screen">
+    <div class="history-shell">
+      <main class="history-main">
+        <div id="trainingDetail"></div>
+      </main>
+    </div>
+  </section>
+
+  <div class="drawer-mask" id="drawerMask"></div>
+  <aside class="setting-drawer" id="settingDrawer">
+    <div class="drawer-head">
+      <div>
+        <strong>作业设置</strong>
+      </div>
+      <button class="drawer-close" id="closeDrawer" type="button">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-panel">
+        <strong>今日自动作业</strong>
+        <div class="setting-row">
+          <div class="setting-field">
+            <span class="setting-label">题目数量</span>
+            <select id="questionCountSelect">
+              <option value="6">6题</option>
+              <option value="8">8题</option>
+              <option value="10" selected>10题</option>
+              <option value="12">12题</option>
+            </select>
+          </div>
+          <div>
+            <span class="setting-label">生成时间</span>
+            <div class="setting-time-group">
+              <button class="time-chip active" type="button" data-timing="下课前10分钟">下课前10分钟</button>
+              <button class="time-chip" type="button" data-timing="下课前5分钟">下课前5分钟</button>
+            </div>
+          </div>
+          <div class="setting-field">
+            <span class="setting-label">当前策略</span>
+            <div class="history-chip-row" style="justify-content:flex-start;">
+              <span class="history-chip">错题优先</span>
+              <span class="history-chip">轮转补齐</span>
+            </div>
+          </div>
+        </div>
+        <div class="drawer-summary" id="drawerSummary"></div>
+      </div>
+      <div class="drawer-panel">
+        <strong>系统说明</strong>
+        <div class="hint">寒暑时期系统会生成两类自动任务：每日作业会在每次课后，从当天学过的题模题库中优先选择课后练标签值较高且掌握度较低的题目，再补错题相似题，最后循环补充相似题；定期消错题会每4次课生成1份，从近1个月课上学过但仍未消除的错题中选取。系统会自动过滤近1个月内已做对的题目和今天未学习的出门测题目，并自动去重。</div>
+      </div>
+    </div>
+    <div class="drawer-foot">
+      <button class="secondary-btn" id="cancelDrawer" type="button">取消</button>
+      <button class="primary-btn" id="applyHomeworkSetting" type="button">应用</button>
+    </div>
+  </aside>
+
+  <script>
+    (function () {
+      var state = {
+        questionCount: 10,
+        timing: "下课前10分钟",
+        drawerOpen: false
+      };
+
+      var baseRecords = [
+        {
+          date: "2026-04-06",
+          tasks: [
+            {
+              type: "作业",
+              title: "平行线判定基础巩固",
+              volume: "",
+              status: "未学习",
+              source: "系统创建",
+              stats: { unresolved: 3, corrected: 2, normal: 5 },
+              accuracy: ""
+            },
+            {
+              type: "作业",
+              title: "定期消错题",
+              volume: "8题 / 16分钟",
+              status: "未学习",
+              source: "系统创建",
+              periodicCorrection: {
+                start: "2026-03-23",
+                end: "2026-04-06",
+                unresolved: 4,
+                similar: 4
+              },
+              accuracy: ""
+            },
+            {
+              type: "试卷",
+              title: "第2章小测卷",
+              volume: "18题 / 35分钟",
+              status: "学习中",
+              source: "系统创建",
+              stats: { unresolved: 4, corrected: 0, normal: 14 },
+              accuracy: ""
+            }
+          ]
+        },
+        {
+          date: "2026-04-03",
+          tasks: [
+            {
+              type: "作业",
+              title: "万以内加减法错题回流",
+              volume: "9题 / 15分钟",
+              status: "已完成",
+              source: "系统创建",
+              stats: { unresolved: 2, corrected: 3, normal: 4 },
+              accuracy: "89%"
+            },
+            {
+              type: "试卷",
+              title: "学习能力分层卷（能力中）",
+              volume: "16题 / 30分钟",
+              status: "已完成",
+              source: "系统创建",
+              stats: { unresolved: 1, corrected: 2, normal: 13 },
+              accuracy: "84%"
+            }
+          ]
+        },
+        {
+          date: "2026-03-30",
+          tasks: [
+            {
+              type: "作业",
+              title: "三角形内角和专题练",
+              volume: "10题 / 18分钟",
+              status: "已完成",
+              source: "系统创建",
+              stats: { unresolved: 2, corrected: 2, normal: 6 },
+              accuracy: "91%"
+            }
+          ]
+        }
+      ];
+
+      function taskKey(date, title) {
+        return date + "::" + title;
+      }
+
+      function normalizeStatus(task) {
+        if (task.status === "已完成" || task.status === "已批改") return "已完成";
+        if (task.status === "学习中" || task.status === "待讲评") return "学习中";
+        return "未学习";
+      }
+
+      function generatedHomeworkData() {
+        var count = state.questionCount;
+        var unresolved = Math.max(2, Math.min(4, Math.floor(count * 0.3)));
+        var corrected = Math.max(1, Math.min(3, Math.floor(count * 0.2)));
+        if (unresolved + corrected >= count) corrected = Math.max(1, count - unresolved - 1);
+        var normal = Math.max(1, count - unresolved - corrected);
+        var minutes = Math.max(12, count * 2);
+        var title = count >= 10 ? "平行线判定基础巩固" : "平行线判定轻量巩固";
+        return {
+          type: "作业",
+          title: title,
+          volume: count + "题 / " + minutes + "分钟",
+          status: "未学习",
+          source: "系统创建",
+          stats: { unresolved: unresolved, corrected: corrected, normal: normal },
+          accuracy: ""
+        };
+      }
+
+      function recordsWithGenerated() {
+        return baseRecords.map(function (record) {
+          var nextTasks = record.tasks.map(function (task, index) {
+            if (record.date === "2026-04-06" && index === 0) {
+              return generatedHomeworkData();
+            }
+            return Object.assign({}, task);
+          });
+          return { date: record.date, tasks: nextTasks };
+        });
+      }
+
+      function systemHoverText(task) {
+        if (task.periodicCorrection) {
+          return "从" + task.periodicCorrection.start + "到" + task.periodicCorrection.end + "的错题及相似题：未订正错题" + task.periodicCorrection.unresolved + "道，相似题" + task.periodicCorrection.similar + "道。";
+        }
+        var stats = task.stats || { unresolved: 0, corrected: 0, normal: 0 };
+        return "未订正错题 " + stats.unresolved + " 题，已订正错题 " + stats.corrected + " 题，非错题 " + stats.normal + " 题。";
+      }
+
+      function cardHtml(date, task, active) {
+        var normalized = normalizeStatus(task);
+        var statusHtml = normalized === "学习中"
+          ? '<span class="history-chip" style="margin-left:6px;">学习中</span>'
+          : "";
+        var sourceHtml = task.source === "系统创建"
+          ? '<span class="history-chip source-chip">系统创建<div class="note-pop"><strong style="display:block; margin-bottom:6px;">系统创建说明</strong>' + systemHoverText(task) + '</div></span>'
+          : '<span class="history-chip">' + task.source + '</span>';
+        return '<div class="training-item ' + (active ? 'active' : '') + '">' +
+          '<div class="training-item-head">' +
+            '<strong>' + task.type + ' · ' + task.title + '</strong>' +
+            '<div>' +
+              sourceHtml +
+              statusHtml +
+            '</div>' +
+          '</div>' +
+          '<div class="hint" style="margin-top:6px;">题量/时长：' + task.volume + '</div>' +
+          (normalized === "已完成" && task.accuracy ? '<div class="hint" style="margin-top:8px;">正确率：' + task.accuracy + '</div>' : '') +
+        '</div>';
+      }
+
+      function renderMain(records) {
+        var allTasks = records.flatMap(function (record) {
+          return record.tasks.map(function (task) {
+            return Object.assign({ date: record.date }, task);
+          });
+        });
+
+        var pendingTasks = allTasks.filter(function (task) { return normalizeStatus(task) !== "已完成"; });
+        var finishedTasks = allTasks.filter(function (task) { return normalizeStatus(task) === "已完成"; });
+        var generated = generatedHomeworkData();
+
+        document.getElementById("trainingDetail").innerHTML =
+          '<div class="history-headline">' +
+            '<div>' +
+              '<h3 style="margin:0 0 4px;">训练场</h3>' +
+              '<div class="hint">系统自动创建和老师手动创建的任务统一放在这里；可按任务状态与类型查看。作业设置改成抽屉，点击按钮后从右侧打开。</div>' +
+            '</div>' +
+            '<div class="headline-actions">' +
+              '<button class="secondary-btn drawer-trigger" id="openDrawer" type="button">作业设置</button>' +
+              '<div class="history-chip-row"><span class="history-chip">数学</span><span class="history-chip">阶段联动</span></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="training-quick-grid">' +
+            '<div class="training-quick-card"><strong>补充学习</strong><div class="hint">围绕当天知识点补充学习内容。</div><div class="training-quick-actions"><button class="secondary-btn" type="button">手动选择</button><button class="secondary-btn" type="button">图片识别</button></div></div>' +
+            '<div class="training-quick-card"><strong>补充练习</strong><div class="hint">根据最新学习内容快速补一轮专项练习。</div><div class="training-quick-actions"><button class="secondary-btn" type="button">专项练习</button><button class="secondary-btn" type="button">错题重练</button></div></div>' +
+            '<div class="training-quick-card"><strong>测评考试</strong><div class="hint">围绕当前阶段生成测评或模拟任务。</div><div class="training-quick-actions"><button class="secondary-btn" type="button">先测后学</button><button class="secondary-btn" type="button">真题测试</button></div></div>' +
+          '</div>' +
+          '<div class="training-section-title">待完成（' + pendingTasks.length + '）</div>' +
+          '<div class="training-card-grid">' + (pendingTasks.length ? pendingTasks.map(function (task, index) { return cardHtml(task.date, task, index === 0 && task.date === "2026-04-06"); }).join("") : '<div class="hint">暂无数据</div>') + '</div>' +
+          '<div class="training-section-title">已完成（' + finishedTasks.length + '）</div>' +
+          '<div class="training-card-grid">' + (finishedTasks.length ? finishedTasks.map(function (task) { return cardHtml(task.date, task, false); }).join("") : '<div class="hint">暂无数据</div>') + '</div>';
+
+        bindMainActions();
+      }
+
+      function bindMainActions() {
+        var openBtn = document.getElementById("openDrawer");
+        if (openBtn) {
+          openBtn.addEventListener("click", function () {
+            state.drawerOpen = true;
+            syncDrawerFields();
+            updateDrawerVisibility();
+          });
+        }
+      }
+
+      function syncDrawerFields() {
+        var select = document.getElementById("questionCountSelect");
+        if (select) select.value = String(state.questionCount);
+        document.querySelectorAll("[data-timing]").forEach(function (btn) {
+          btn.classList.toggle("active", btn.getAttribute("data-timing") === state.timing);
+        });
+        var summary = document.getElementById("drawerSummary");
+        var generated = generatedHomeworkData();
+        if (summary) {
+          summary.textContent = "当前设置会直接影响今日自动生成作业卡片：" + state.questionCount + "题，" + state.timing + " 自动生成。";
+        }
+      }
+
+      function updateDrawerVisibility() {
+        var drawer = document.getElementById("settingDrawer");
+        var mask = document.getElementById("drawerMask");
+        if (!drawer || !mask) return;
+        drawer.classList.toggle("show", state.drawerOpen);
+        mask.classList.toggle("show", state.drawerOpen);
+      }
+
+      function bindDrawerActions() {
+        var select = document.getElementById("questionCountSelect");
+        if (select) {
+          select.addEventListener("change", function () {
+            state.questionCount = Number(select.value);
+            syncDrawerFields();
+          });
+        }
+
+        document.querySelectorAll("[data-timing]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            state.timing = btn.getAttribute("data-timing");
+            syncDrawerFields();
+          });
+        });
+
+        function closeDrawer() {
+          state.drawerOpen = false;
+          updateDrawerVisibility();
+        }
+
+        var mask = document.getElementById("drawerMask");
+        var closeBtn = document.getElementById("closeDrawer");
+        var cancelBtn = document.getElementById("cancelDrawer");
+        var applyBtn = document.getElementById("applyHomeworkSetting");
+
+        if (mask) mask.addEventListener("click", closeDrawer);
+        if (closeBtn) closeBtn.addEventListener("click", closeDrawer);
+        if (cancelBtn) cancelBtn.addEventListener("click", closeDrawer);
+        if (applyBtn) {
+          applyBtn.addEventListener("click", function () {
+            state.questionCount = Number(document.getElementById("questionCountSelect").value);
+            state.drawerOpen = false;
+            render();
+          });
+        }
+      }
+
+      function render() {
+        var records = recordsWithGenerated();
+        renderMain(records);
+        syncDrawerFields();
+        updateDrawerVisibility();
+      }
+
+      bindDrawerActions();
+      render();
+    }());
+  </script>
+</body>
+</html>
